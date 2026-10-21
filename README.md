@@ -1,6 +1,3 @@
-# otakatik
-TUGAS UAS MOPRO
-
 # OtakAtik (Prototype)
 
 Prototype app belajar kode dengan maskot **Atik**, dibuat dengan React Native + Expo mengikuti desain UI/UX final.
