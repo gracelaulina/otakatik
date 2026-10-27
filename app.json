@@ -5,7 +5,16 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "ios": { "supportsTablet": false, "bundleIdentifier": "com.example.otakatik" },
-    "android": { "package": "com.example.otakatik" }
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.example.otakatik"
+    },
+    "android": {
+      "package": "com.example.otakatik"
+    },
+    "plugins": [
+      "expo-font",
+      "expo-status-bar"
+    ]
   }
 }

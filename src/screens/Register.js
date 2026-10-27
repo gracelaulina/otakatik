@@ -10,6 +10,8 @@ import { BackButton } from '../components/TopBar';
 import { useNav } from '../navigation/NavContext';
 import { useGame } from '../state/GameContext';
 import { colors } from '../theme';
+import { registerUser, loadUserProgress } from '../services/firebase';
+import { feedback } from '../services/feedback';
 
 export default function Register() {
   const nav = useNav();
@@ -18,23 +20,51 @@ export default function Register() {
   const [email, setEmail] = useState('');
   const [pass, setPass] = useState('');
   const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
   const shake = useRef(new Animated.Value(0)).current;
 
-  const submit = () => {
+  const doShake = () => {
+    feedback.wrong();
+    Animated.sequence(
+      [10, -10, 8, -8, 4, 0].map((v) =>
+        Animated.timing(shake, { toValue: v, duration: 45, useNativeDriver: true })
+      )
+    ).start();
+  };
+
+  const submit = async () => {
+    if (busy) return;
     if (!name.trim() || !email.includes('@') || pass.length < 6) {
       setError('Isi nama, email yang benar, dan kata sandi minimal 6 karakter.');
-      Animated.sequence([10, -10, 8, -8, 4, 0].map((v) => Animated.timing(shake, { toValue: v, duration: 45, useNativeDriver: true }))).start();
+      doShake();
       return;
     }
-    dispatch({ type: 'LOGIN', user: { name: name.trim(), email: email.trim() } });
-    nav.reset('Home');
+    setBusy(true);
+    setError('');
+    try {
+      const { user } = await registerUser({ name, email, password: pass });
+      const progress = await loadUserProgress(user);
+      feedback.correct();
+      dispatch({ type: 'LOGIN', user, progress });
+      nav.reset('Home');
+    } catch (err) {
+      setError(err.message || 'Gagal mendaftar. Coba lagi.');
+      doShake();
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
     <Screen bg={colors.sky}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={{ marginBottom: 16, alignItems: 'flex-start' }}>
-          <BackButton onPress={nav.back} />
+          <BackButton
+            onPress={() => {
+              feedback.tap();
+              nav.back();
+            }}
+          />
         </View>
         <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <FadeInUp>
@@ -58,7 +88,7 @@ export default function Register() {
               </T>
             </View>
           </FadeInUp>
-          <Button3D title="Daftar" onPress={submit} />
+          <Button3D title={busy ? 'Mendaftarkan...' : 'Daftar'} disabled={busy} onPress={submit} />
         </ScrollView>
       </KeyboardAvoidingView>
     </Screen>

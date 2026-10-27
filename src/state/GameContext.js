@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useMemo, useReducer } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useReducer } from 'react';
 import { STAGES } from '../data/content';
+import { getSavedSession, loadUserProgress, saveUserProgress } from '../services/firebase';
 
 export const levelFromXp = (xp) => Math.floor(xp / 100) + 1;
 export const xpForNext = (xp) => levelFromXp(xp) * 100;
@@ -24,6 +25,7 @@ export const getResume = (state) => {
 
 export const initialState = {
   user: null,
+  hydrated: false,
   hearts: 3,
   xp: 0,
   completed: {}, // { [stageId]: { score, perfect } }
@@ -35,10 +37,22 @@ export const initialState = {
 
 export function gameReducer(state, a) {
   switch (a.type) {
+    case 'HYDRATE':
+      return {
+        ...initialState,
+        ...a.payload,
+        user: a.user || null,
+        hydrated: true,
+      };
     case 'LOGIN':
-      return { ...initialState, user: a.user };
+      return {
+        ...initialState,
+        ...(a.progress || {}),
+        user: a.user,
+        hydrated: true,
+      };
     case 'LOGOUT':
-      return initialState;
+      return { ...initialState, hydrated: true };
     case 'SET_HEARTS':
       return { ...state, hearts: a.hearts };
     case 'SET_POSITION':
@@ -84,6 +98,42 @@ const GameContext = createContext(null);
 
 export function GameProvider({ children }) {
   const [state, dispatch] = useReducer(gameReducer, initialState);
+
+  // Saat aplikasi pertama kali dibuka, pulihkan sesi user & progres dari AsyncStorage/Firestore
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const savedUser = await getSavedSession();
+      if (savedUser) {
+        const savedProgress = await loadUserProgress(savedUser);
+        if (mounted) {
+          dispatch({ type: 'HYDRATE', user: savedUser, payload: savedProgress || {} });
+        }
+      } else if (mounted) {
+        dispatch({ type: 'HYDRATE', user: null, payload: {} });
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // Setiap kali progres berubah dan user sedang login, simpan otomatis ke AsyncStorage & Firestore
+  useEffect(() => {
+    if (!state.hydrated || !state.user) return;
+    saveUserProgress(state.user, state);
+  }, [
+    state.hydrated,
+    state.user,
+    state.hearts,
+    state.xp,
+    state.completed,
+    state.weak,
+    state.history,
+    state.streak3,
+    state.position,
+  ]);
+
   const value = useMemo(() => ({ state, dispatch }), [state]);
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 }

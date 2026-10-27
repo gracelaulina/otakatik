@@ -3,6 +3,8 @@ import { Animated, BackHandler, Easing, View } from 'react-native';
 import { NavContext } from './NavContext';
 import TabBar from '../components/TabBar';
 import { colors } from '../theme';
+import { useGame } from '../state/GameContext';
+import { feedback } from '../services/feedback';
 
 import Login from '../screens/Login';
 import Register from '../screens/Register';
@@ -39,10 +41,21 @@ function Transition({ children }) {
 }
 
 export default function Navigator() {
+  const { state } = useGame();
   const idRef = useRef(2);
   const [stack, setStack] = useState([{ id: 1, name: 'Login', params: {} }]);
   const stackRef = useRef(stack);
   stackRef.current = stack;
+  const didAutoRedirect = useRef(false);
+
+  useEffect(() => {
+    if (state.hydrated && state.user && !didAutoRedirect.current) {
+      didAutoRedirect.current = true;
+      setStack([{ id: idRef.current++, name: 'Home', params: {} }]);
+    } else if (!state.user) {
+      didAutoRedirect.current = false;
+    }
+  }, [state.hydrated, state.user]);
 
   const push = useCallback((name, params = {}) => setStack((s) => [...s, { id: idRef.current++, name, params }]), []);
   const replace = useCallback((name, params = {}) => setStack((s) => [...s.slice(0, -1), { id: idRef.current++, name, params }]), []);
@@ -71,7 +84,15 @@ export default function Navigator() {
         <Transition key={current.id}>
           <Comp params={current.params} />
         </Transition>
-        {activeTab ? <TabBar active={activeTab} onChange={(tab) => reset(tab)} /> : null}
+        {activeTab ? (
+          <TabBar
+            active={activeTab}
+            onChange={(tab) => {
+              feedback.tap();
+              reset(tab);
+            }}
+          />
+        ) : null}
       </View>
     </NavContext.Provider>
   );
