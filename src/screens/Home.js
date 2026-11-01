@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { Animated, Dimensions, Easing, ScrollView, View } from 'react-native'
+import { Animated, Easing, ScrollView, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Screen from '../components/Screen'
 import T from '../components/T'
 import Mascot from '../components/Mascot'
@@ -10,13 +9,13 @@ import FadeInUp from '../components/FadeInUp'
 import PressableScale from '../components/PressableScale'
 import Button3D from '../components/Button3D'
 import GuideModal, { GUIDE_STEPS } from '../components/GuideModal'
+import { globalTabBarRef } from '../components/TabBar'
 import { useNav } from '../navigation/NavContext'
 import { useGame, getResume } from '../state/GameContext'
 import { colors } from '../theme'
 
 const SOFT_WHITE = 'rgba(255,255,255,0.55)'
 const SOFT_NAVY = 'rgba(0,0,0,0.08)'
-const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window')
 
 // Pil kecil penanda posisi belajar (Materi -> Kuis)
 function StepPill({ label, icon, active }) {
@@ -88,7 +87,6 @@ function ActionTile({ color, icon, title, subtitle, onPress }) {
 
 export default function Home() {
     const nav = useNav()
-    const insets = useSafeAreaInsets()
     const { state, dispatch } = useGame()
     const { stage, step } = getResume(state)
     const pulse = useRef(new Animated.Value(1)).current
@@ -120,29 +118,23 @@ export default function Home() {
         return () => loop.stop()
     }, [])
 
-    // Ukur posisi elemen yang sedang di-highlight pada layar
+    // Ukur posisi elemen secara presisi di layar setelah scroll selesai
     const measureStep = (idx) => {
         const key = GUIDE_STEPS[idx]?.key
         if (!key) return
-        if (key === 'tabs') {
-            setTargetRect({
-                x: 20,
-                y: SCREEN_H - insets.bottom - 90,
-                w: SCREEN_W - 40,
-                h: 76,
-            })
-            return
-        }
-        // Otomatis scroll jika menyorot bagian bawah (Latihan & Riwayat)
+
         if (scrollRef.current) {
             if (key === 'actions') {
                 scrollRef.current.scrollToEnd({ animated: true })
+            } else if (key === 'main') {
+                scrollRef.current.scrollTo({ y: 95, animated: true })
             } else {
                 scrollRef.current.scrollTo({ y: 0, animated: true })
             }
         }
+
         setTimeout(() => {
-            const ref = targetRefs.current[key]
+            const ref = key === 'tabs' ? globalTabBarRef : targetRefs.current[key]
             if (ref && ref.measureInWindow) {
                 ref.measureInWindow((x, y, w, h) => {
                     if (w > 0 && h > 0) {
@@ -150,7 +142,7 @@ export default function Home() {
                     }
                 })
             }
-        }, 280)
+        }, 320)
     }
 
     useEffect(() => {
@@ -193,14 +185,13 @@ export default function Home() {
 
     return (
         <Screen padBottom={100}>
-            <View
-                ref={(el) => {
+            <TopBar
+                hearts={state.hearts}
+                xp={state.xp}
+                pillsRef={(el) => {
                     targetRefs.current.stats = el
                 }}
-                collapsable={false}
-            >
-                <TopBar hearts={state.hearts} xp={state.xp} />
-            </View>
+            />
 
             <ScrollView
                 ref={scrollRef}

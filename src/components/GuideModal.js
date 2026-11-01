@@ -1,6 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Animated, Dimensions, Modal, Pressable, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import T from './T';
 import Mascot from './Mascot';
 import Button3D from './Button3D';
@@ -12,35 +11,47 @@ const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 export const GUIDE_STEPS = [
   {
     key: 'stats',
+    radius: 26,
+    pad: 4,
     badge: '1 / 5 • STATUS BELAJAR',
     title: 'Nyawa & Poin XP',
     body: 'Kamu punya 3 Nyawa di setiap kuis. Setiap jawaban benar memberi +10 XP untuk menaikkan level dan peringkatmu!',
   },
   {
     key: 'resume',
+    radius: 32,
+    pad: 4,
     badge: '2 / 5 • AKSES CEPAT',
     title: 'Lanjutkan Belajar',
     body: 'Klik kartu kuning ini untuk langsung kembali ke Materi atau Kuis terakhir yang sedang kamu pelajari.',
   },
   {
     key: 'main',
+    radius: 40,
+    pad: 4,
     badge: '3 / 5 • MENU UTAMA',
     title: 'Ayo Otak-Atik Kodemu!',
     body: 'Tekan tombol Play untuk memilih Stage (Variabel, Tipe Data, Percabangan) beserta tingkatannya: Mudah, Menengah, atau Susah.',
   },
   {
     key: 'actions',
+    radius: 32,
+    pad: 4,
     badge: '4 / 5 • EVALUASI MANDIRI',
     title: 'Latihan & Riwayat',
     body: 'Gunakan Latihan untuk mengulang konsep yang masih lemah tanpa mengurangi nyawa, dan cek semua skormu di Riwayat.',
   },
   {
     key: 'tabs',
+    radius: 36,
+    pad: 4,
     badge: '5 / 5 • NAVIGASI BAWAH',
     title: 'Progres, Peringkat & Lencana',
     body: 'Pantau grafik perkembanganmu di Progres, adu XP di Peringkat kelas, dan kumpulkan ke-6 Lencana prestasi!',
   },
 ];
+
+const HUGE = Math.max(SCREEN_W, SCREEN_H) * 2;
 
 export default function GuideModal({ visible, targetRect, stepIdx, onNext, onSkip }) {
   const pulse = useRef(new Animated.Value(0)).current;
@@ -49,94 +60,61 @@ export default function GuideModal({ visible, targetRect, stepIdx, onNext, onSki
     if (!visible) return;
     const loop = Animated.loop(
       Animated.sequence([
-        Animated.timing(pulse, { toValue: 1, duration: 700, useNativeDriver: false }),
-        Animated.timing(pulse, { toValue: 0, duration: 700, useNativeDriver: false }),
+        Animated.timing(pulse, { toValue: 1, duration: 750, useNativeDriver: false }),
+        Animated.timing(pulse, { toValue: 0, duration: 750, useNativeDriver: false }),
       ])
     );
     loop.start();
     return () => loop.stop();
   }, [visible, stepIdx]);
 
-  if (!visible) return null;
+  if (!visible || !targetRect) return null;
 
   const step = GUIDE_STEPS[stepIdx] || GUIDE_STEPS[0];
   const isLast = stepIdx === GUIDE_STEPS.length - 1;
-  const pad = 8;
+  const pad = step.pad ?? 4;
+  const radius = step.radius ?? 30;
 
-  // Fallback apabila ukuran elemen sedang dihitung setelah scroll
-  const rect = targetRect || {
-    x: 24,
-    y: step.key === 'tabs' ? SCREEN_H - 105 : 120,
-    w: SCREEN_W - 48,
-    h: 90,
-  };
-
-  const holeLeft = Math.max(8, rect.x - pad);
-  const holeTop = Math.max(8, rect.y - pad);
-  const holeWidth = Math.min(SCREEN_W - holeLeft - 8, rect.w + pad * 2);
-  const holeHeight = rect.h + pad * 2;
-  const holeRight = holeLeft + holeWidth;
+  const holeLeft = Math.max(4, targetRect.x - pad);
+  const holeTop = Math.max(4, targetRect.y - pad);
+  const holeWidth = Math.min(SCREEN_W - holeLeft - 4, targetRect.w + pad * 2);
+  const holeHeight = targetRect.h + pad * 2;
   const holeBottom = holeTop + holeHeight;
 
-  // Tentukan apakah kartu penjelasan muncul di bawah atau di atas sorotan
-  const showCardAbove = holeBottom > SCREEN_H * 0.56;
-  const borderScale = pulse.interpolate({ inputRange: [0, 1], outputRange: [0, 4] });
+  // Tentukan posisi kartu penjelasan: di bawah elemen bila muat, atau di atas elemen
+  const spaceBelow = SCREEN_H - holeBottom;
+  const showCardAbove = spaceBelow < 245;
+
+  const glowSpread = pulse.interpolate({ inputRange: [0, 1], outputRange: [0, 5] });
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onSkip}>
       <View style={{ flex: 1 }}>
-        {/* 4 Panel Gelap mengelilingi area yang di-highlight agar bagian tengah tetap bening & terang */}
+        {/* 1 Komponen Masking Tunggal dengan border raksasa sehingga sudut lubang 100% melengkung mulus tanpa celah */}
         <View
+          pointerEvents="none"
           style={{
             position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: holeTop,
-            backgroundColor: 'rgba(10, 9, 66, 0.74)',
-          }}
-        />
-        <View
-          style={{
-            position: 'absolute',
-            top: holeBottom,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(10, 9, 66, 0.74)',
-          }}
-        />
-        <View
-          style={{
-            position: 'absolute',
-            top: holeTop,
-            left: 0,
-            width: holeLeft,
-            height: holeHeight,
-            backgroundColor: 'rgba(10, 9, 66, 0.74)',
-          }}
-        />
-        <View
-          style={{
-            position: 'absolute',
-            top: holeTop,
-            left: holeRight,
-            right: 0,
-            height: holeHeight,
-            backgroundColor: 'rgba(10, 9, 66, 0.74)',
+            left: holeLeft - HUGE,
+            top: holeTop - HUGE,
+            width: holeWidth + HUGE * 2,
+            height: holeHeight + HUGE * 2,
+            borderRadius: radius + HUGE,
+            borderWidth: HUGE,
+            borderColor: 'rgba(10, 9, 66, 0.76)',
           }}
         />
 
-        {/* Outline Menyala Berdenyut pada Area yang Disorot */}
+        {/* Ring Outline Kuning Menyala yang Persis Mengikuti Lengkungan Elemen */}
         <Animated.View
           pointerEvents="none"
           style={{
             position: 'absolute',
-            left: Animated.subtract(holeLeft, borderScale),
-            top: Animated.subtract(holeTop, borderScale),
-            width: Animated.add(holeWidth, Animated.multiply(borderScale, 2)),
-            height: Animated.add(holeHeight, Animated.multiply(borderScale, 2)),
-            borderRadius: 30,
+            left: Animated.subtract(holeLeft, glowSpread),
+            top: Animated.subtract(holeTop, glowSpread),
+            width: Animated.add(holeWidth, Animated.multiply(glowSpread, 2)),
+            height: Animated.add(holeHeight, Animated.multiply(glowSpread, 2)),
+            borderRadius: Animated.add(radius, glowSpread),
             borderWidth: 3.5,
             borderColor: '#FFC247',
           }}
@@ -150,8 +128,8 @@ export default function GuideModal({ visible, targetRect, stepIdx, onNext, onSki
               left: 20,
               right: 20,
               ...(showCardAbove
-                ? { bottom: Math.max(24, SCREEN_H - holeTop + 16) }
-                : { top: Math.min(SCREEN_H - 250, holeBottom + 16) }),
+                ? { bottom: Math.max(20, SCREEN_H - holeTop + 14) }
+                : { top: Math.min(SCREEN_H - 235, holeBottom + 14) }),
               backgroundColor: '#fff',
               borderRadius: 30,
               padding: 20,
@@ -161,19 +139,19 @@ export default function GuideModal({ visible, targetRect, stepIdx, onNext, onSki
             shadow,
           ]}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-            <Mascot size={50} style={{ marginRight: 12, marginTop: -4 }} />
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+            <Mascot size={48} style={{ marginRight: 12, marginTop: -4 }} />
             <View style={{ flex: 1 }}>
               <T weight="bold" style={{ fontSize: 12, color: colors.blue }}>
                 {step.badge}
               </T>
-              <T weight="bold" style={{ fontSize: 21, color: colors.navy, marginTop: 2 }}>
+              <T weight="bold" style={{ fontSize: 20, color: colors.navy, marginTop: 2 }}>
                 {step.title}
               </T>
             </View>
           </View>
 
-          <T weight="semi" style={{ fontSize: 15, lineHeight: 22, color: colors.slate, marginBottom: 16 }}>
+          <T weight="semi" style={{ fontSize: 15, lineHeight: 22, color: colors.slate, marginBottom: 14 }}>
             {step.body}
           </T>
 
@@ -209,7 +187,7 @@ export default function GuideModal({ visible, targetRect, stepIdx, onNext, onSki
               variant="blue"
               radius={18}
               depth={4}
-              fontSize={16}
+              fontSize={15}
               onPress={() => {
                 feedback.tap();
                 onNext();

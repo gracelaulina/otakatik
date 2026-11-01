@@ -13,11 +13,17 @@ export function BackButton({ onPress }) {
   );
 }
 
-export default function TopBar({ onBack, hearts = 3, xp = 0, showPills = true }) {
+export default function TopBar({ onBack, hearts = 3, xp = 0, showPills = true, pillsRef }) {
   return (
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
       {onBack ? <BackButton onPress={onBack} /> : <View />}
-      {showPills ? <StatPills hearts={hearts} xp={xp} /> : <View />}
+      {showPills ? (
+        <View ref={pillsRef} collapsable={false}>
+          <StatPills hearts={hearts} xp={xp} />
+        </View>
+      ) : (
+        <View />
+      )}
     </View>
   );
 }

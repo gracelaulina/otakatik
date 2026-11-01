@@ -13,6 +13,8 @@ const TABS = [
   { key: 'Profile', label: 'Profil', icon: 'person' },
 ];
 
+export let globalTabBarRef = null;
+
 function Tab({ tab, active, onPress }) {
   const s = useRef(new Animated.Value(active ? 1.15 : 1)).current;
   useEffect(() => {
@@ -34,6 +36,10 @@ export default function TabBar({ active, onChange }) {
   const insets = useSafeAreaInsets();
   return (
     <View
+      ref={(el) => {
+        globalTabBarRef = el;
+      }}
+      collapsable={false}
       style={[
         {
           position: 'absolute',
