@@ -1,6 +1,7 @@
-import React, { useEffect, useRef } from 'react'
-import { Animated, Easing, ScrollView, View } from 'react-native'
+import React, { useEffect, useRef, useState } from 'react'
+import { Animated, Dimensions, Easing, ScrollView, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Screen from '../components/Screen'
 import T from '../components/T'
 import Mascot from '../components/Mascot'
@@ -8,13 +9,14 @@ import TopBar from '../components/TopBar'
 import FadeInUp from '../components/FadeInUp'
 import PressableScale from '../components/PressableScale'
 import Button3D from '../components/Button3D'
-import GuideModal from '../components/GuideModal'
+import GuideModal, { GUIDE_STEPS } from '../components/GuideModal'
 import { useNav } from '../navigation/NavContext'
 import { useGame, getResume } from '../state/GameContext'
 import { colors } from '../theme'
 
 const SOFT_WHITE = 'rgba(255,255,255,0.55)'
 const SOFT_NAVY = 'rgba(0,0,0,0.08)'
+const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window')
 
 // Pil kecil penanda posisi belajar (Materi -> Kuis)
 function StepPill({ label, icon, active }) {
@@ -86,9 +88,16 @@ function ActionTile({ color, icon, title, subtitle, onPress }) {
 
 export default function Home() {
     const nav = useNav()
+    const insets = useSafeAreaInsets()
     const { state, dispatch } = useGame()
     const { stage, step } = getResume(state)
     const pulse = useRef(new Animated.Value(1)).current
+    const scrollRef = useRef(null)
+    const targetRefs = useRef({})
+    const [guideStep, setGuideStep] = useState(0)
+    const [targetRect, setTargetRect] = useState(null)
+
+    const guideVisible = !!state.hydrated && !state.seenGuide
 
     useEffect(() => {
         const loop = Animated.loop(
@@ -111,6 +120,66 @@ export default function Home() {
         return () => loop.stop()
     }, [])
 
+    // Ukur posisi elemen yang sedang di-highlight pada layar
+    const measureStep = (idx) => {
+        const key = GUIDE_STEPS[idx]?.key
+        if (!key) return
+        if (key === 'tabs') {
+            setTargetRect({
+                x: 20,
+                y: SCREEN_H - insets.bottom - 90,
+                w: SCREEN_W - 40,
+                h: 76,
+            })
+            return
+        }
+        // Otomatis scroll jika menyorot bagian bawah (Latihan & Riwayat)
+        if (scrollRef.current) {
+            if (key === 'actions') {
+                scrollRef.current.scrollToEnd({ animated: true })
+            } else {
+                scrollRef.current.scrollTo({ y: 0, animated: true })
+            }
+        }
+        setTimeout(() => {
+            const ref = targetRefs.current[key]
+            if (ref && ref.measureInWindow) {
+                ref.measureInWindow((x, y, w, h) => {
+                    if (w > 0 && h > 0) {
+                        setTargetRect({ x, y, w, h })
+                    }
+                })
+            }
+        }, 280)
+    }
+
+    useEffect(() => {
+        if (guideVisible) {
+            measureStep(guideStep)
+        }
+    }, [guideVisible, guideStep])
+
+    const handleNextGuide = () => {
+        if (guideStep < GUIDE_STEPS.length - 1) {
+            setGuideStep(guideStep + 1)
+        } else {
+            setGuideStep(0)
+            if (scrollRef.current) scrollRef.current.scrollTo({ y: 0, animated: true })
+            dispatch({ type: 'SEEN_GUIDE' })
+        }
+    }
+
+    const handleSkipGuide = () => {
+        setGuideStep(0)
+        if (scrollRef.current) scrollRef.current.scrollTo({ y: 0, animated: true })
+        dispatch({ type: 'SEEN_GUIDE' })
+    }
+
+    const openGuideAgain = () => {
+        setGuideStep(0)
+        dispatch({ type: 'SHOW_GUIDE' })
+    }
+
     // Maskot ikut "melayang" pelan dari animasi yang sama
     const float = pulse.interpolate({ inputRange: [1, 1.08], outputRange: [0, -8] })
 
@@ -124,8 +193,17 @@ export default function Home() {
 
     return (
         <Screen padBottom={100}>
-            <TopBar hearts={state.hearts} xp={state.xp} />
+            <View
+                ref={(el) => {
+                    targetRefs.current.stats = el
+                }}
+                collapsable={false}
+            >
+                <TopBar hearts={state.hearts} xp={state.xp} />
+            </View>
+
             <ScrollView
+                ref={scrollRef}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: 24 }}
             >
@@ -149,7 +227,7 @@ export default function Home() {
                             </T>
                         </View>
                         <PressableScale
-                            onPress={() => dispatch({ type: 'SHOW_GUIDE' })}
+                            onPress={openGuideAgain}
                             style={{
                                 backgroundColor: '#fff',
                                 borderRadius: 20,
@@ -170,52 +248,63 @@ export default function Home() {
 
                 {/* Kartu lanjutkan belajar */}
                 <FadeInUp delay={80}>
-                    <PressableScale
-                        onPress={resume}
-                        style={{
-                            backgroundColor: colors.yellow,
-                            borderRadius: 30,
-                            padding: 20,
-                            overflow: 'hidden',
+                    <View
+                        ref={(el) => {
+                            targetRefs.current.resume = el
                         }}
+                        collapsable={false}
                     >
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <View style={{ flex: 1, paddingRight: 12 }}>
-                                <T weight="semi" style={{ fontSize: 15, opacity: 0.7 }}>
-                                    Lanjutkan belajar
-                                </T>
-                                <T weight="bold" style={{ fontSize: 24, marginTop: 2 }}>
-                                    Stage {stage.id}: {stage.title}
-                                </T>
+                        <PressableScale
+                            onPress={resume}
+                            style={{
+                                backgroundColor: colors.yellow,
+                                borderRadius: 30,
+                                padding: 20,
+                                overflow: 'hidden',
+                            }}
+                        >
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <View style={{ flex: 1, paddingRight: 12 }}>
+                                    <T weight="semi" style={{ fontSize: 15, opacity: 0.7 }}>
+                                        Lanjutkan belajar
+                                    </T>
+                                    <T weight="bold" style={{ fontSize: 24, marginTop: 2 }}>
+                                        Stage {stage.id}: {stage.title}
+                                    </T>
+                                </View>
+                                <View
+                                    style={{
+                                        width: 56,
+                                        height: 56,
+                                        borderRadius: 28,
+                                        backgroundColor: colors.navy,
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                    }}
+                                >
+                                    <Ionicons
+                                        name="play"
+                                        size={26}
+                                        color="#fff"
+                                        style={{ marginLeft: 3 }}
+                                    />
+                                </View>
                             </View>
-                            <View
-                                style={{
-                                    width: 56,
-                                    height: 56,
-                                    borderRadius: 28,
-                                    backgroundColor: colors.navy,
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                }}
-                            >
-                                <Ionicons
-                                    name="play"
-                                    size={26}
-                                    color="#fff"
-                                    style={{ marginLeft: 3 }}
-                                />
+                            <View style={{ flexDirection: 'row', gap: 8, marginTop: 16 }}>
+                                <StepPill label="Materi" icon="book" active={step !== 'quiz'} />
+                                <StepPill label="Kuis" icon="help-circle" active={step === 'quiz'} />
                             </View>
-                        </View>
-                        <View style={{ flexDirection: 'row', gap: 8, marginTop: 16 }}>
-                            <StepPill label="Materi" icon="book" active={step !== 'quiz'} />
-                            <StepPill label="Kuis" icon="help-circle" active={step === 'quiz'} />
-                        </View>
-                    </PressableScale>
+                        </PressableScale>
+                    </View>
                 </FadeInUp>
 
                 {/* Kartu maskot (elemen utama layar) */}
                 <FadeInUp delay={160}>
                     <View
+                        ref={(el) => {
+                            targetRefs.current.main = el
+                        }}
+                        collapsable={false}
                         style={{
                             backgroundColor: colors.sky,
                             borderRadius: 38,
@@ -309,30 +398,42 @@ export default function Home() {
                 </FadeInUp>
 
                 {/* Aksi cepat */}
-                <FadeInUp delay={240} style={{ flexDirection: 'row', gap: 14, marginTop: 16 }}>
-                    <View style={{ flex: 1 }}>
-                        <ActionTile
-                            color={colors.pink}
-                            icon="barbell"
-                            title="Latihan"
-                            subtitle="Ulangi konsep"
-                            onPress={() => nav.push('Quiz', { practice: true })}
-                        />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                        <ActionTile
-                            color={colors.lavender}
-                            icon="time"
-                            title="Riwayat"
-                            subtitle="Percobaanmu"
-                            onPress={() => nav.push('History')}
-                        />
+                <FadeInUp delay={240} style={{ marginTop: 16 }}>
+                    <View
+                        ref={(el) => {
+                            targetRefs.current.actions = el
+                        }}
+                        collapsable={false}
+                        style={{ flexDirection: 'row', gap: 14 }}
+                    >
+                        <View style={{ flex: 1 }}>
+                            <ActionTile
+                                color={colors.pink}
+                                icon="barbell"
+                                title="Latihan"
+                                subtitle="Ulangi konsep"
+                                onPress={() => nav.push('Quiz', { practice: true })}
+                            />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <ActionTile
+                                color={colors.lavender}
+                                icon="time"
+                                title="Riwayat"
+                                subtitle="Percobaanmu"
+                                onPress={() => nav.push('History')}
+                            />
+                        </View>
                     </View>
                 </FadeInUp>
             </ScrollView>
+
             <GuideModal
-                visible={!!state.hydrated && !state.seenGuide}
-                onDone={() => dispatch({ type: 'SEEN_GUIDE' })}
+                visible={guideVisible}
+                targetRect={targetRect}
+                stepIdx={guideStep}
+                onNext={handleNextGuide}
+                onSkip={handleSkipGuide}
             />
         </Screen>
     )
