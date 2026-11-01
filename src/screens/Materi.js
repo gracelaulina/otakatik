@@ -10,22 +10,24 @@ import AnimatedBar from '../components/AnimatedBar';
 import Button3D from '../components/Button3D';
 import { useNav } from '../navigation/NavContext';
 import { useGame } from '../state/GameContext';
-import { STAGES } from '../data/content';
+import { STAGES, LEVELS } from '../data/content';
 import { colors, shadow } from '../theme';
 import { feedback } from '../services/feedback';
 
 export default function Materi({ params }) {
   const nav = useNav();
   const { state, dispatch } = useGame();
-  const { stageId, page } = params;
+  const { stageId, page = 0, tier = null } = params;
   const stage = STAGES.find((s) => s.id === stageId);
-  const item = stage.materi[page];
-  const last = page === stage.materi.length - 1;
+  const slides = tier ? stage.materi.filter((m) => m.level === tier) : stage.materi;
+  const item = slides[page] || slides[0];
+  const last = page === slides.length - 1;
+  const lvInfo = LEVELS.find((l) => l.key === item.level) || LEVELS[0];
 
   const prev = () => {
     feedback.tap();
     if (page > 0) {
-      nav.replace('Materi', { stageId, page: page - 1 });
+      nav.replace('Materi', { stageId, page: page - 1, tier });
     } else {
       nav.back();
     }
@@ -35,9 +37,9 @@ export default function Materi({ params }) {
     feedback.tap();
     if (last) {
       dispatch({ type: 'SET_POSITION', stageId, step: 'quiz' });
-      nav.replace('Quiz', { stageId });
+      nav.replace('Quiz', { stageId, tier });
     } else {
-      nav.replace('Materi', { stageId, page: page + 1 });
+      nav.replace('Materi', { stageId, page: page + 1, tier });
     }
   };
 
@@ -45,16 +47,21 @@ export default function Materi({ params }) {
     <Screen>
       <TopBar onBack={prev} hearts={state.hearts} xp={state.xp} />
       <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
-        {stage.materi.map((_, i) => (
+        {slides.map((_, i) => (
           <AnimatedBar key={i} progress={i <= page ? 1 : 0} height={8} style={{ flex: 1 }} />
         ))}
       </View>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
         <FadeInUp>
-          <T weight="bold" style={{ color: colors.slate, fontSize: 17 }}>
-            Stage {stage.id} · Materi {page + 1} dari {stage.materi.length}
-          </T>
-          <T weight="bold" style={{ fontSize: 34, marginTop: 6, marginBottom: 12, lineHeight: 40 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <T weight="bold" style={{ color: colors.slate, fontSize: 16 }}>
+              Stage {stage.id} · Materi {page + 1} dari {slides.length}
+            </T>
+            <View style={{ backgroundColor: lvInfo.bg, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 4 }}>
+              <T weight="bold" style={{ fontSize: 13 }}>{lvInfo.label.toUpperCase()}</T>
+            </View>
+          </View>
+          <T weight="bold" style={{ fontSize: 32, marginTop: 8, marginBottom: 12, lineHeight: 38 }}>
             {item.title}
           </T>
         </FadeInUp>

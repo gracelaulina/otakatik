@@ -14,13 +14,14 @@ import Materi from '../screens/Materi';
 import Quiz from '../screens/Quiz';
 import StageComplete from '../screens/StageComplete';
 import Progress from '../screens/Progress';
+import Leaderboard from '../screens/Leaderboard';
 import Badges from '../screens/Badges';
 import Profile from '../screens/Profile';
 import History from '../screens/History';
 
-const SCREENS = { Login, Register, Home, StageSelect, Materi, Quiz, StageComplete, Progress, Badges, Profile, History };
+const SCREENS = { Login, Register, Home, StageSelect, Materi, Quiz, StageComplete, Progress, Leaderboard, Badges, Profile, History };
 // layar mana saja yang menampilkan tab bar, dan tab mana yang aktif
-const TAB_FOR = { Home: 'Home', StageSelect: 'Home', Progress: 'Progress', Badges: 'Badges', Profile: 'Profile' };
+const TAB_FOR = { Home: 'Home', StageSelect: 'Home', Progress: 'Progress', Leaderboard: 'Leaderboard', Badges: 'Badges', Profile: 'Profile' };
 
 function Transition({ children }) {
   const v = useRef(new Animated.Value(0)).current;

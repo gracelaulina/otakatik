@@ -1,11 +1,10 @@
-// Semua materi, simulasi kotak memori interaktif, rangkuman stage,
-// dan bank soal adaptif (Pilihan Ganda, Drag & Drop Match, dan Susun Kode)
-// mengacu pada dokumen Materi dan Quis.pdf serta OtakAtik_Presentasi_Proposal.pdf.
+// Semua materi (Mudah, Menengah, Susah), simulasi kotak memori interaktif,
+// rangkuman stage, dan bank soal adaptif (Pilihan Ganda + Drag & Drop Merapikan Kode).
 
 export const LEVELS = [
-  { key: 'mudah', label: 'Mudah', bg: '#C8F2DC' },
-  { key: 'sedang', label: 'Sedang', bg: '#FDE0A5' },
-  { key: 'sulit', label: 'Sulit', bg: '#FBC4E8' },
+  { key: 'mudah', label: 'Mudah', subtitle: 'Konsep dasar & pengenalan', bg: '#C8F2DC' },
+  { key: 'sedang', label: 'Menengah', subtitle: 'Aturan & penerapan kode', bg: '#FDE0A5' },
+  { key: 'sulit', label: 'Susah', subtitle: 'Logika lanjut & rapikan kode', bg: '#FBC4E8' },
 ];
 
 export const STAGES = [
@@ -15,7 +14,9 @@ export const STAGES = [
     subtitle: 'Menyimpan nilai',
     color: '#FBC4E8',
     materi: [
+      // === MUDAH ===
       {
+        level: 'mudah',
         title: 'Apa itu Variabel?',
         body: 'Variabel adalah nama yang digunakan untuk menyimpan suatu nilai agar nilai tersebut dapat dipakai kembali oleh program. Bayangkan variabel seperti kotak berlabel di memori komputer: nama kotak adalah nama variabel, sedangkan isi kotak adalah nilainya.',
         code: 'nama = "Budi"\numur = 16\nskor = 90',
@@ -49,6 +50,7 @@ export const STAGES = [
         },
       },
       {
+        level: 'mudah',
         title: 'Mengapa Variabel Diperlukan?',
         body: 'Variabel membuat informasi lebih mudah digunakan kembali dan diperbarui. Tanpa variabel, nilai yang sama harus ditulis berulang kali. Dengan variabel, program cukup merujuk pada nama yang sudah dibuat.',
         code: 'namaSiswa = "Nadia"\nnilai = 88\nprint(namaSiswa)\nprint(nilai)',
@@ -90,10 +92,12 @@ export const STAGES = [
           ],
         },
       },
+      // === MENENGAH ===
       {
+        level: 'sedang',
         title: 'Nilai Variabel Dapat Berubah',
         body: 'Nilai yang disimpan dalam variabel dapat diperbarui kapan saja. Ketika nilai baru diberikan kepada nama variabel yang sama, nilai lama tertimpa dan nilai terbaru itulah yang digunakan selanjutnya.',
-        code: 'skor = 10\nskor = 20',
+        code: 'skor = 10\nskor = 20\nprint(skor)',
         tip: 'Setelah baris kedua dijalankan, nilai terbaru skor adalah 20, bukan 10.',
         sim: {
           title: 'Simulasi Perubahan Nilai di Memori',
@@ -108,19 +112,75 @@ export const STAGES = [
               desc: 'Baris kedua menimpa isi kotak "skor" menjadi 20! Nilai 10 digantikan.',
               boxes: [{ name: 'skor', value: '20', prevValue: '10', type: 'Integer', updated: true }],
             },
+            {
+              line: 2,
+              desc: 'Saat dicetak, yang tampil adalah nilai terbaru yaitu 20.',
+              boxes: [{ name: 'skor', value: '20', type: 'Integer' }],
+              output: '20',
+            },
           ],
         },
       },
       {
+        level: 'sedang',
         title: 'Aturan Penamaan Variabel',
-        body: 'Gunakan nama yang jelas dan menggambarkan data yang disimpan. Nama variabel tidak boleh diawali angka, tidak boleh mengandung spasi, dan sebaiknya tidak membingungkan.',
-        code: 'namaSiswa = "Rani"  # jelas\n2nilai = 75         # tidak valid\nnama siswa = "Rani" # memakai spasi',
-        tip: 'Contoh yang baik: namaSiswa, umur, totalBelanja, dan nilaiUjian.',
+        body: 'Gunakan nama yang jelas dan menggambarkan data yang disimpan. Nama variabel tidak boleh diawali angka, tidak boleh mengandung spasi, dan sebaiknya menggunakan camelCase atau underscore (_).',
+        code: 'namaSiswa = "Rani"  # jelas (Valid)\n2nilai = 75         # diawali angka (Salah)\nnama siswa = "Rani" # memakai spasi (Salah)',
+        tip: 'Contoh yang baik: namaSiswa, umur, totalBelanja, dan nilai_ujian.',
+      },
+      // === SUSAH ===
+      {
+        level: 'sulit',
+        title: 'Menyalin & Menghitung Variabel',
+        body: 'Variabel bisa mengambil nilai dari variabel lain atau menghitung nilainya sendiri. Urutan baris kode sangat menentukan hasil akhirnya: komputer selalu mengeksekusi kode dari baris paling atas ke bawah.',
+        code: 'a = 10\nb = a\na = a + 5\nprint(b)',
+        tip: 'Variabel harus dibuat (diisi nilai) terlebih dahulu sebelum bisa dipanggil atau dihitung di baris bawahnya.',
+        sim: {
+          title: 'Simulasi Salin & Hitung Variabel',
+          steps: [
+            {
+              line: 0,
+              desc: 'Kotak a dibuat dengan nilai 10.',
+              boxes: [{ name: 'a', value: '10', type: 'Integer', updated: true }],
+            },
+            {
+              line: 1,
+              desc: 'Kotak b menyalin isi kotak a saat ini (10).',
+              boxes: [
+                { name: 'a', value: '10', type: 'Integer' },
+                { name: 'b', value: '10', type: 'Integer', updated: true },
+              ],
+            },
+            {
+              line: 2,
+              desc: 'Kotak a ditambah 5 menjadi 15. Kotak b tetap 10!',
+              boxes: [
+                { name: 'a', value: '15', prevValue: '10', type: 'Integer', updated: true },
+                { name: 'b', value: '10', type: 'Integer' },
+              ],
+            },
+            {
+              line: 3,
+              desc: 'Mencetak isi b yaitu 10.',
+              boxes: [
+                { name: 'a', value: '15', type: 'Integer' },
+                { name: 'b', value: '10', type: 'Integer', updated: true },
+              ],
+              output: '10',
+            },
+          ],
+        },
+      },
+      {
+        level: 'sulit',
+        title: 'Merapikan Urutan Kode Variabel',
+        body: 'Kode yang berantakan (misalnya mencetak variabel sebelum variabelnya dibuat, atau menaruh tanda = secara terbalik) akan menyebabkan error. Pastikan deklarasi nilai awal selalu berada di baris pertama sebelum pembaruan dan print.',
+        code: '# Urutan yang Rapi & Benar:\nharga = 5000\ndiskon = 1000\ntotal = harga - diskon\nprint(total)',
+        tip: 'Selalu susun dari: (1) Buat variabel awal -> (2) Proses/ubah nilai -> (3) Tampilkan hasil.',
         summary: [
-          'Variabel adalah nama untuk menyimpan nilai di memori.',
-          'Variabel membantu program memakai kembali informasi.',
-          'Nilai variabel dapat diperbarui (nilai baru menimpa nilai lama).',
-          'Gunakan nama yang jelas, jangan diawali angka, dan jangan memakai spasi.',
+          'Mudah: Variabel adalah kotak berlabel untuk menyimpan nilai agar bisa dipakai ulang.',
+          'Menengah: Nilai variabel bisa diperbarui; namanya tidak boleh diawali angka atau spasi.',
+          'Susah: Menyalin variabel menyalin nilainya saat itu, dan urutan baris kode harus rapi dari atas ke bawah.',
         ],
       },
     ],
@@ -164,14 +224,14 @@ export const STAGES = [
         },
         {
           id: 'v4',
-          concept: 'Aturan penamaan',
-          type: 'choice',
-          mono: true,
-          prompt: 'Pernyataan: nama variabel 2nilai merupakan contoh nama yang baik karena diawali angka.',
-          options: ['Benar', 'Salah'],
-          answer: 1,
-          hint: 'Cek kembali aturan penamaan variabel: bolehkah huruf pertamanya berupa angka?',
-          explanation: 'Salah. Nama variabel tidak boleh diawali dengan angka.',
+          concept: 'Merapikan deklarasi variabel',
+          type: 'match',
+          prompt: 'Kode ini masih berantakan! Seret potongan untuk merapikan urutan membuat variabel umur = 16',
+          pieces: ['16', 'umur', '='],
+          slots: ['Bagian 1 (Kiri)', 'Bagian 2 (Tengah)', 'Bagian 3 (Kanan)'],
+          answer: [1, 2, 0],
+          hint: 'Urutan menyimpan nilai: Nama Variabel di kiri, tanda = di tengah, dan Nilai di kanan.',
+          explanation: 'Penulisan variabel yang rapi adalah: umur = 16 (nama variabel, tanda =, lalu nilainya).',
         },
       ],
       sedang: [
@@ -200,39 +260,38 @@ export const STAGES = [
         },
         {
           id: 'v7',
-          concept: 'Nama variabel',
-          type: 'match',
-          prompt: 'Cocokkan bagian kode nama = "Budi" dengan perannya',
-          pieces: ['nama', '=', '"Budi"'],
-          slots: ['Variabel', 'Simpan', 'Nilai'],
-          answer: [0, 1, 2],
-          hint: 'Sebelah kiri adalah nama variabel, tanda = untuk menyimpan, dan sebelah kanan adalah nilainya.',
-          explanation: 'nama adalah nama variabel, = adalah operator penyimpan nilai, dan "Budi" adalah isi nilainya.',
+          concept: 'Aturan penamaan',
+          type: 'choice',
+          mono: true,
+          prompt: 'Pernyataan: nama variabel 2nilai merupakan contoh nama yang baik karena diawali angka.',
+          options: ['Benar', 'Salah'],
+          answer: 1,
+          hint: 'Cek kembali aturan penamaan variabel: bolehkah huruf pertamanya berupa angka?',
+          explanation: 'Salah. Nama variabel tidak boleh diawali dengan angka.',
         },
         {
           id: 'v8',
-          concept: 'Mengubah nilai',
-          type: 'choice',
-          mono: true,
-          prompt: 'Berapa isi umur setelah kode ini dijalankan?',
-          code: 'umur = 16\numur = umur + 1',
-          options: ['16', '17', '1', 'Error'],
-          answer: 1,
-          hint: 'Hitung dulu nilai umur lama (16) ditambah 1, lalu simpan kembali ke umur.',
-          explanation: 'Komputer menghitung 16 + 1 = 17, lalu menyimpannya kembali ke variabel umur.',
+          concept: 'Merapikan kode variabel',
+          type: 'match',
+          prompt: 'Kode berikut belum rapi dan terbalik! Seret baris kode agar skor dimulai dari 10, diubah jadi 20, lalu dicetak',
+          pieces: ['print(skor)', 'skor = 10', 'skor = 20'],
+          slots: ['Baris 1', 'Baris 2', 'Baris 3'],
+          answer: [1, 2, 0],
+          hint: 'Buat nilai awal 10 dulu di Baris 1, perbarui jadi 20 di Baris 2, baru print(skor) di Baris 3.',
+          explanation: 'Urutan kode yang rapi: skor = 10 -> skor = 20 -> print(skor).',
         },
       ],
       sulit: [
         {
           id: 'v9',
-          concept: 'Menyusun kode variabel',
+          concept: 'Merapikan kode perhitungan',
           type: 'match',
-          prompt: 'Susun baris kode agar skor awal 10 diubah menjadi 20 lalu ditampilkan',
-          pieces: ['print(skor)', 'skor = 10', 'skor = 20'],
-          slots: ['Baris 1', 'Baris 2', 'Baris 3'],
-          answer: [1, 2, 0],
-          hint: 'Buat nilai awal 10 dulu, perbarui menjadi 20, baru cetak hasilnya di baris terakhir.',
-          explanation: 'Pertama skor diisi 10, kedua diperbarui menjadi 20, dan ketiga ditampilkan dengan print(skor).',
+          prompt: 'Rapikan baris kode yang acak ini agar program menghitung total = harga - diskon dengan benar!',
+          pieces: ['total = harga - diskon', 'harga = 5000', 'print(total)', 'diskon = 1000'],
+          slots: ['Baris 1', 'Baris 2', 'Baris 3', 'Baris 4'],
+          answer: [1, 3, 0, 2],
+          hint: 'Tentukan harga (5000) dan diskon (1000) dulu sebelum menghitung total dan mencetaknya!',
+          explanation: 'Variabel harga dan diskon wajib diisi nilai dulu sebelum dipakai menghitung total = harga - diskon.',
         },
         {
           id: 'v10',
@@ -248,14 +307,14 @@ export const STAGES = [
         },
         {
           id: 'v11',
-          concept: 'Aturan penamaan',
+          concept: 'Merapikan kode tukar nilai',
           type: 'match',
-          prompt: 'Cocokkan contoh penamaan variabel berikut dengan statusnya',
-          pieces: ['namaSiswa', '2nilai', 'nama siswa'],
-          slots: ['Valid', 'Awali Angka', 'Pakai Spasi'],
-          answer: [0, 1, 2],
-          hint: 'Perhatikan mana yang memakai angka di depan dan mana yang terpisah spasi.',
-          explanation: 'namaSiswa adalah valid, 2nilai salah karena diawali angka, dan nama siswa salah karena memakai spasi.',
+          prompt: 'Rapikan urutan kode berikut agar variabel umur awal 16 bertambah 1 tahun lalu ditampilkan!',
+          pieces: ['umur = umur + 1', 'print(umur)', 'umur = 16'],
+          slots: ['Baris 1', 'Baris 2', 'Baris 3'],
+          answer: [2, 0, 1],
+          hint: 'Mulai dari umur = 16, lalu tambahkan 1, dan terakhir print(umur).',
+          explanation: 'Urutan yang benar: umur = 16 -> umur = umur + 1 -> print(umur).',
         },
       ],
     },
@@ -266,7 +325,9 @@ export const STAGES = [
     subtitle: 'Integer, String, Boolean',
     color: '#D8CEFB',
     materi: [
+      // === MUDAH ===
       {
+        level: 'mudah',
         title: 'Apa itu Tipe Data?',
         body: 'Tipe data adalah kategori yang menjelaskan jenis nilai yang disimpan dalam variabel. Pada OtakAtik, kita mempelajari tiga tipe dasar: Integer untuk bilangan bulat, String untuk teks, dan Boolean untuk nilai benar atau salah.',
         code: 'umur = 16\nnama = "Rani"\nlulus = true',
@@ -300,26 +361,24 @@ export const STAGES = [
         },
       },
       {
-        title: 'Integer (Bilangan Bulat)',
-        body: 'Integer digunakan untuk menyimpan bilangan bulat, yaitu angka tanpa bagian desimal (koma). Nilainya dapat berupa bilangan negatif, nol, maupun positif.',
-        code: 'umur = 16\njumlahBuku = 4\nsuhu = -2',
-        tip: 'Contoh Integer: -2, 0, 4, dan 16. Angka desimal seperti 3.5 BUKAN bilangan bulat (Integer).',
+        level: 'mudah',
+        title: 'Integer & String',
+        body: 'Integer digunakan untuk menyimpan bilangan bulat tanpa desimal (negatif, nol, atau positif). Sedangkan String digunakan untuk menyimpan teks dan selalu ditulis di antara tanda kutip ("...").',
+        code: 'jumlahBuku = 4\nsuhu = -2\nsapaan = "Halo!"\nkota = "Bandung"',
+        tip: 'Contoh Integer: -2, 0, 4, 16. Angka 3.5 bukan Integer karena memiliki desimal.',
       },
+      // === MENENGAH ===
       {
-        title: 'String (Teks)',
-        body: 'String digunakan untuk menyimpan teks, seperti nama, alamat, atau pesan. Dalam banyak bahasa pemrograman, teks selalu ditulis di antara tanda kutip ("...").',
-        code: 'nama = "Rani"\nsapaan = "Halo!"\nkota = "Bandung"',
-        tip: 'Tanda kutip menandai bahwa isi tersebut adalah teks (String), bukan nama variabel atau angka biasa.',
-      },
-      {
+        level: 'sedang',
         title: 'Boolean (Benar atau Salah)',
-        body: 'Boolean menyimpan salah satu dari dua nilai logika: true (benar) atau false (salah). Tipe ini berguna untuk menyatakan keadaan atau hasil pemeriksaan, misalnya apakah pengguna sudah login.',
+        body: 'Boolean menyimpan salah satu dari dua nilai logika: true (benar) atau false (salah). Tipe ini berguna untuk menyatakan status atau hasil pemeriksaan, misalnya apakah pengguna sudah login.',
         code: 'sudahLogin = true\njawabanBenar = false',
         tip: 'Boolean ditulis langsung true atau false TANPA tanda kutip.',
       },
       {
-        title: 'Cara Membedakan Tipe Data',
-        body: 'Perhatikan bentuk nilai dan konteksnya! Angka 25 adalah Integer, sedangkan "25" adalah String karena ditulis di antara tanda kutip, dan true adalah nilai Boolean.',
+        level: 'sedang',
+        title: 'Cara Membedakan Tipe Data Mirip',
+        body: 'Perhatikan bentuk nilai dan tanda kutipnya! Angka 25 adalah Integer, sedangkan "25" adalah String karena ditulis di antara tanda kutip, dan true adalah nilai Boolean.',
         code: 'jumlah = 25\nkodePos = "25"\naktif = true',
         tip: 'Angka 25 dan teks "25" tampak mirip, tetapi jenis tipe datanya berbeda di memori!',
         sim: {
@@ -349,11 +408,18 @@ export const STAGES = [
             },
           ],
         },
+      },
+      // === SUSAH ===
+      {
+        level: 'sulit',
+        title: 'Operasi Antar Tipe Data',
+        body: 'Tipe data menentukan apa yang terjadi saat nilai dioperasikan. Tanda + pada dua Integer akan menjumlahkan angka (5 + 3 = 8), tetapi tanda + pada dua String akan menyambung teks ("5" + "3" = "53").',
+        code: 'angka = 5 + 3       # Hasil: 8 (Integer)\nteks = "5" + "3"    # Hasil: "53" (String)\ncek = 5 > 3         # Hasil: true (Boolean)',
+        tip: 'Jangan mencampur teks String dengan perhitungan angka tanpa mengubah tipenya terlebih dahulu!',
         summary: [
-          'Integer = bilangan bulat tanpa desimal, misalnya -2, 0, 4, 16.',
-          'String = teks, selalu ditulis di antara tanda kutip ("...").',
-          'Boolean = nilai logika yang hanya berisi true atau false.',
-          'Nilai yang terlihat mirip (25 vs "25") memiliki tipe data yang berbeda.',
+          'Mudah: Integer untuk bilangan bulat, String untuk teks berkutip ("...").',
+          'Menengah: Boolean bernilai true/false tanpa kutip; "25" adalah String sedangkan 25 adalah Integer.',
+          'Susah: Operasi + pada Integer menjumlahkan angka, sedangkan pada String menggabungkan teks.',
         ],
       },
     ],
@@ -398,30 +464,19 @@ export const STAGES = [
         },
         {
           id: 't4',
-          concept: 'Tipe data Boolean',
-          type: 'choice',
-          mono: true,
-          prompt: 'Manakah yang merupakan tipe data Boolean?',
-          options: ['25', '"Halo"', 'true', '3.14'],
-          answer: 2,
-          hint: 'Pilih nilai logika benar/salah yang tidak memakai tanda kutip.',
-          explanation: 'Boolean hanya bernilai true atau false. Teks di dalam tanda kutip adalah String.',
-        },
-      ],
-      sedang: [
-        {
-          id: 't5',
           concept: 'Mencocokkan tipe data',
           type: 'match',
-          prompt: 'Cocokkan data dengan tipe datanya',
+          prompt: 'Cocokkan data dasar berikut dengan tipe datanya',
           pieces: ['25', '"Halo"', 'true'],
           slots: ['Integer', 'String', 'Boolean'],
           answer: [0, 1, 2],
           hint: 'Angka bulat ke Integer, teks berkutip ke String, dan logika benar/salah ke Boolean.',
           explanation: '25 adalah Integer, "Halo" adalah String, dan true adalah Boolean.',
         },
+      ],
+      sedang: [
         {
-          id: 't6',
+          id: 't5',
           concept: 'Tipe data String',
           type: 'choice',
           mono: true,
@@ -432,7 +487,7 @@ export const STAGES = [
           explanation: 'Tanda kutip pada "25" menunjukkan bahwa nilai tersebut diperlakukan sebagai teks (String).',
         },
         {
-          id: 't7',
+          id: 't6',
           concept: 'Tipe data Integer',
           type: 'choice',
           prompt: 'Pernyataan: nilai 3.5 merupakan bilangan bulat (Integer).',
@@ -442,7 +497,7 @@ export const STAGES = [
           explanation: 'Salah. Nilai 3.5 memiliki bagian desimal, sehingga bukan bilangan bulat (Integer).',
         },
         {
-          id: 't8',
+          id: 't7',
           concept: 'Tipe data Boolean',
           type: 'choice',
           mono: true,
@@ -452,13 +507,24 @@ export const STAGES = [
           hint: 'true dan false digunakan untuk menyatakan status atau logika.',
           explanation: 'true adalah nilai logika (Boolean) yang menyatakan keadaan benar.',
         },
+        {
+          id: 't8',
+          concept: 'Merapikan kode tipe data',
+          type: 'match',
+          prompt: 'Rapikan baris deklarasi profil siswa berikut sesuai urutan komentar: (1) Nama String, (2) Umur Integer, (3) Status Boolean!',
+          pieces: ['umur = 16', 'aktif = true', 'nama = "Rani"'],
+          slots: ['1. String', '2. Integer', '3. Boolean'],
+          answer: [2, 0, 1],
+          hint: 'Pilih yang bertanda kutip untuk String, angka bulat untuk Integer, dan true untuk Boolean.',
+          explanation: 'nama = "Rani" (String), umur = 16 (Integer), dan aktif = true (Boolean).',
+        },
       ],
       sulit: [
         {
           id: 't9',
           concept: 'Mencocokkan tipe data',
           type: 'match',
-          prompt: 'Cocokkan data yang mirip berikut dengan tipe datanya yang tepat',
+          prompt: 'Cocokkan data yang tampak mirip berikut dengan tipe datanya yang tepat',
           pieces: ['-4', '"false"', 'false'],
           slots: ['String', 'Boolean', 'Integer'],
           answer: [1, 2, 0],
@@ -467,7 +533,7 @@ export const STAGES = [
         },
         {
           id: 't10',
-          concept: 'Tipe data String',
+          concept: 'Operasi tipe data',
           type: 'choice',
           mono: true,
           prompt: 'Apa hasil dari "5" + "3" jika keduanya bertipe String (teks)?',
@@ -478,14 +544,14 @@ export const STAGES = [
         },
         {
           id: 't11',
-          concept: 'Tipe data Boolean',
-          type: 'choice',
-          mono: true,
-          prompt: 'Pasangan nilai manakah yang KEDUANYA merupakan tipe data Boolean?',
-          options: ['true dan false', 'true dan "false"', '"true" dan "false"', '1 dan 0'],
-          answer: 0,
-          hint: 'Pastikan kedua nilainya tidak menggunakan tanda kutip sama sekali.',
-          explanation: 'Boolean ditulis langsung sebagai nilai logika true dan false, bukan teks bertanda kutip.',
+          concept: 'Merapikan kode operasi tipe data',
+          type: 'match',
+          prompt: 'Susun dan rapikan kode berikut agar menggabungkan teks sapaan "Halo " dan nama "Budi" lalu mencetaknya!',
+          pieces: ['pesan = sapa + nama', 'sapa = "Halo "', 'print(pesan)', 'nama = "Budi"'],
+          slots: ['Baris 1', 'Baris 2', 'Baris 3', 'Baris 4'],
+          answer: [1, 3, 0, 2],
+          hint: 'Buat variabel sapa dan nama terlebih dahulu, gabungkan ke dalam pesan, baru print(pesan).',
+          explanation: 'Urutan yang rapi: sapa = "Halo " -> nama = "Budi" -> pesan = sapa + nama -> print(pesan).',
         },
       ],
     },
@@ -496,14 +562,17 @@ export const STAGES = [
     subtitle: 'if, else if, else',
     color: '#FADFAA',
     materi: [
+      // === MUDAH ===
       {
+        level: 'mudah',
         title: 'Apa itu Percabangan?',
         body: 'Percabangan adalah struktur yang membuat program memilih tindakan berdasarkan kondisi. Dalam kehidupan sehari-hari, jika hujan maka kita membawa payung. Program juga mengambil keputusan dengan cara serupa.',
         code: 'if hujan:\n    bawaPayung()',
         tip: 'Baris di dalam if hanya dijalankan ketika kondisi hujan bernilai benar (true).',
       },
       {
-        title: 'Struktur if',
+        level: 'mudah',
+        title: 'Struktur Dasar if',
         body: 'if digunakan untuk menjalankan perintah ketika suatu kondisi benar. Jika kondisi salah, bagian di dalam if dilewati dan program melanjutkan langkah berikutnya.',
         code: 'nilai = 85\nif nilai >= 75:\n    print("Lulus")',
         tip: 'Karena nilai 85 memenuhi syarat nilai >= 75 (benar), maka pesan "Lulus" ditampilkan.',
@@ -532,7 +601,9 @@ export const STAGES = [
           ],
         },
       },
+      // === MENENGAH ===
       {
+        level: 'sedang',
         title: 'Struktur if - else',
         body: 'else menyediakan pilihan alternatif ketika kondisi pada if tidak terpenuhi (bernilai salah). Dalam satu alur if-else, program hanya memilih salah satu cabang.',
         code: 'nilai = 60\nif nilai >= 75:\n    print("Lulus")\nelse:\n    print("Belum lulus")',
@@ -568,10 +639,19 @@ export const STAGES = [
         },
       },
       {
-        title: 'Menggunakan else if',
+        level: 'sedang',
+        title: 'Operator Perbandingan',
+        body: 'Kondisi sering menggunakan operator perbandingan seperti >, <, >=, <=, == (sama dengan), dan != (tidak sama dengan). Hasil pemeriksaan kondisi selalu berupa benar (true) atau salah (false).',
+        code: 'umur = 17\nif umur >= 17:\n    print("Boleh mendaftar")',
+        tip: 'Simbol >= berarti lebih besar dari atau sama dengan. Jangan tertukar dengan = yang dipakai untuk menyimpan nilai.',
+      },
+      // === SUSAH ===
+      {
+        level: 'sulit',
+        title: 'Rangkaian if - else if - else',
         body: 'else if (atau elif) digunakan untuk memeriksa kondisi tambahan ketika kondisi sebelumnya salah. Urutan pemeriksaan sangat penting karena program hanya menjalankan cabang pertama yang kondisinya terpenuhi.',
         code: 'nilai = 85\nif nilai >= 90:\n    predikat = "A"\nelse if nilai >= 75:\n    predikat = "B"\nelse:\n    predikat = "C"',
-        tip: 'Dengan nilai 85, kondisi pertama (>= 90) salah dan kondisi kedua (>= 75) benar, sehingga predikat menjadi "B".',
+        tip: 'Selalu urutkan kondisi dari syarat yang paling ketat (misal >= 90) ke syarat yang lebih longgar (>= 75), lalu tutup dengan else.',
         sim: {
           title: 'Simulasi Urutan else if (Nilai = 85)',
           steps: [
@@ -606,18 +686,10 @@ export const STAGES = [
             },
           ],
         },
-      },
-      {
-        title: 'Operator Perbandingan',
-        body: 'Kondisi sering menggunakan operator perbandingan seperti >, <, >=, <=, == (sama dengan), dan != (tidak sama dengan). Hasil pemeriksaan kondisi selalu berupa benar (true) atau salah (false).',
-        code: 'umur = 17\nif umur >= 17:\n    print("Boleh mendaftar")',
-        tip: 'Simbol >= berarti lebih besar dari atau sama dengan. Jangan tertukar dengan = yang dipakai untuk menyimpan nilai.',
         summary: [
-          'if menjalankan blok kode ketika kondisi bernilai benar (true).',
-          'else menjadi jalur alternatif ketika kondisi if tidak terpenuhi (false).',
-          'else if / elif memeriksa kondisi tambahan secara berurutan.',
-          'Urutan kondisi penting: hanya cabang pertama yang terpenuhi yang akan dijalankan.',
-          'Operator perbandingan (>, <, >=, <=, ==, !=) menghasilkan nilai logika benar/salah.',
+          'Mudah: if menjalankan blok kode hanya ketika kondisinya bernilai benar (true).',
+          'Menengah: else menjadi jalur alternatif saat kondisi if salah; gunakan operator >=, <=, ==, !=.',
+          'Susah: Susun if -> else if -> else secara berurutan dari syarat paling spesifik karena hanya cabang pertama yang true yang dieksekusi.',
         ],
       },
     ],
@@ -651,6 +723,19 @@ export const STAGES = [
         },
         {
           id: 'c3',
+          concept: 'Merapikan kode if sederhana',
+          type: 'match',
+          prompt: 'Kode if ini masih acak! Seret baris kode agar mengecek nilai >= 75 lalu mencetak "Lulus"',
+          pieces: ['    print("Lulus")', 'nilai = 80', 'if nilai >= 75:'],
+          slots: ['Baris 1', 'Baris 2', 'Baris 3'],
+          answer: [1, 2, 0],
+          hint: 'Isi variabel nilai = 80 dulu, lalu tulis syarat if nilai >= 75:, dan terakhir perintah print yang menjorok ke dalam.',
+          explanation: 'Urutan yang rapi: nilai = 80 -> if nilai >= 75: -> print("Lulus").',
+        },
+      ],
+      sedang: [
+        {
+          id: 'c4',
           concept: 'Kata kunci else',
           type: 'choice',
           prompt: 'Pada struktur if-else, kapan bagian else dijalankan?',
@@ -665,34 +750,7 @@ export const STAGES = [
           explanation: 'Bagian else menjadi jalur alternatif yang dijalankan ketika kondisi if bernilai salah (false).',
         },
         {
-          id: 'c4',
-          concept: 'Operator perbandingan',
-          type: 'choice',
-          prompt: 'Pernyataan: operator >= berarti lebih besar dari atau sama dengan.',
-          options: ['Benar', 'Salah'],
-          answer: 0,
-          hint: 'Perhatikan gabungan tanda lebih besar (>) dan sama dengan (=).',
-          explanation: 'Benar! Operator >= mencakup nilai yang lebih besar maupun yang sama persis.',
-        },
-      ],
-      sedang: [
-        {
           id: 'c5',
-          concept: 'else if',
-          type: 'choice',
-          prompt: 'Apa kegunaan utama dari else if?',
-          options: [
-            'Memeriksa kondisi tambahan setelah if salah',
-            'Menghapus kondisi sebelumnya',
-            'Mengubah teks menjadi angka',
-            'Menghentikan semua program',
-          ],
-          answer: 0,
-          hint: 'Dipakai saat kita punya lebih dari dua kemungkinan pilihan (misal predikat A, B, C).',
-          explanation: 'else if memungkinkan program mengecek kondisi pilihan lain setelah kondisi if sebelumnya salah.',
-        },
-        {
-          id: 'c6',
           concept: 'if dan else',
           type: 'choice',
           prompt: 'Jika nilai = 60 pada kode berikut, pesan mana yang dipilih?',
@@ -703,30 +761,31 @@ export const STAGES = [
           explanation: 'Karena 60 tidak memenuhi kondisi nilai >= 75, maka cabang else ("Belum lulus") yang dipilih.',
         },
         {
-          id: 'c7',
-          concept: 'Urutan percabangan',
-          type: 'choice',
-          prompt: 'Pernyataan: dalam rangkaian if / else if / else, semua cabang selalu dijalankan sekaligus.',
-          options: ['Benar', 'Salah'],
-          answer: 1,
-          hint: 'Jika kamu memilih satu jalan di persimpangan, apakah kamu melewati semua jalan sekaligus?',
-          explanation: 'Salah. Rangkaian percabangan hanya memilih satu cabang pertama yang kondisinya terpenuhi.',
-        },
-        {
-          id: 'c8',
-          concept: 'Menyusun kode percabangan',
+          id: 'c6',
+          concept: 'Merapikan blok if-else',
           type: 'match',
-          prompt: 'Susun struktur logika percabangan dari atas ke bawah dengan urutan yang benar',
-          pieces: ['else:', 'if nilai >= 90:', 'else if nilai >= 75:'],
-          slots: ['Cabang 1', 'Cabang 2', 'Cabang 3'],
-          answer: [1, 2, 0],
-          hint: 'Mulai dengan if untuk syarat tertinggi, lalu else if untuk syarat kedua, dan tutup dengan else.',
-          explanation: 'Percabangan selalu diawali if, dilanjutkan else if untuk kondisi tambahan, dan diakhiri else.',
+          prompt: 'Rapikan blok kode if-else yang berantakan ini dari Baris 1 sampai Baris 4!',
+          pieces: ['else:', '    print("Lulus")', 'if nilai >= 75:', '    print("Remidi")'],
+          slots: ['Baris 1', 'Baris 2', 'Baris 3', 'Baris 4'],
+          answer: [2, 1, 0, 3],
+          hint: 'Mulai dengan if nilai >= 75:, lalu aksi Lulus, kemudian else:, dan aksi Remidi.',
+          explanation: 'Struktur if-else yang rapi: if nilai >= 75: -> print("Lulus") -> else: -> print("Remidi").',
         },
       ],
       sulit: [
         {
-          id: 'c9',
+          id: 'c7',
+          concept: 'Merapikan struktur if - else if - else',
+          type: 'match',
+          prompt: 'Kode penentu predikat nilai ini masih berantakan! Seret potongan untuk merapikan urutannya dari atas ke bawah',
+          pieces: ['else:', 'if nilai >= 90:', 'else if nilai >= 75:'],
+          slots: ['Cabang 1 (Atas)', 'Cabang 2 (Tengah)', 'Cabang 3 (Bawah)'],
+          answer: [1, 2, 0],
+          hint: 'Mulai dengan if untuk syarat tertinggi (>= 90), lalu else if untuk syarat kedua (>= 75), dan tutup dengan else:',
+          explanation: 'Percabangan bertingkat harus disusun rapi dari if -> else if -> else.',
+        },
+        {
+          id: 'c8',
           concept: 'else if',
           type: 'choice',
           prompt: 'Apa predikat yang dihasilkan oleh kode berikut?',
@@ -737,7 +796,7 @@ export const STAGES = [
           explanation: 'Kondisi pertama (85 >= 90) salah, kondisi kedua (85 >= 75) benar, sehingga predikat menjadi "B".',
         },
         {
-          id: 'c10',
+          id: 'c9',
           concept: 'Urutan percabangan',
           type: 'choice',
           prompt: 'Apa yang tercetak ke layar dari kode berikut?',
@@ -747,23 +806,21 @@ export const STAGES = [
           hint: 'Ingat: pengecekan berhenti begitu menemukan cabang PERTAMA yang bernilai true!',
           explanation: 'Meskipun 10 > 8 juga benar, kondisi pertama (10 > 5) sudah terpenuhi lebih dulu sehingga program mencetak A lalu berhenti.',
         },
-        {
-          id: 'c11',
-          concept: 'Operator perbandingan',
-          type: 'match',
-          prompt: 'Jika umur = 17, cocokkan kondisi perbandingan berikut dengan hasil logikanya',
-          pieces: ['umur >= 17', 'umur > 17', 'umur == 17'],
-          slots: ['true ( >= )', 'false ( > )', 'true ( == )'],
-          answer: [0, 1, 2],
-          hint: '17 sama dengan 17, sehingga >= dan == bernilai true, tetapi > 17 bernilai false.',
-          explanation: '17 >= 17 adalah true, 17 > 17 adalah false, dan 17 == 17 adalah true.',
-        },
       ],
     },
   },
 ];
 
-export const flattenStage = (stage) =>
-  LEVELS.flatMap((lv, i) =>
+export const flattenStage = (stage, levelKey) => {
+  if (levelKey) {
+    const lvIdx = LEVELS.findIndex((l) => l.key === levelKey);
+    return (stage.questions[levelKey] || []).map((q) => ({
+      ...q,
+      level: lvIdx >= 0 ? lvIdx : 0,
+      stageId: stage.id,
+    }));
+  }
+  return LEVELS.flatMap((lv, i) =>
     (stage.questions[lv.key] || []).map((q) => ({ ...q, level: i, stageId: stage.id }))
   );
+};

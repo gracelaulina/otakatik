@@ -8,6 +8,7 @@ import TopBar from '../components/TopBar'
 import FadeInUp from '../components/FadeInUp'
 import PressableScale from '../components/PressableScale'
 import Button3D from '../components/Button3D'
+import GuideModal from '../components/GuideModal'
 import { useNav } from '../navigation/NavContext'
 import { useGame, getResume } from '../state/GameContext'
 import { colors } from '../theme'
@@ -128,15 +129,42 @@ export default function Home() {
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: 24 }}
             >
-                {/* Sapaan */}
+                {/* Sapaan + Tombol Panduan */}
                 <FadeInUp>
-                    <View style={{ marginBottom: 18, marginTop: 4 }}>
-                        <T weight="semi" style={{ fontSize: 18, opacity: 0.7 }}>
-                            Halo,
-                        </T>
-                        <T weight="bold" style={{ fontSize: 40, lineHeight: 46 }}>
-                            {name}!
-                        </T>
+                    <View
+                        style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            marginBottom: 18,
+                            marginTop: 4,
+                        }}
+                    >
+                        <View>
+                            <T weight="semi" style={{ fontSize: 18, opacity: 0.7 }}>
+                                Halo,
+                            </T>
+                            <T weight="bold" style={{ fontSize: 40, lineHeight: 46 }}>
+                                {name}!
+                            </T>
+                        </View>
+                        <PressableScale
+                            onPress={() => dispatch({ type: 'SHOW_GUIDE' })}
+                            style={{
+                                backgroundColor: '#fff',
+                                borderRadius: 20,
+                                paddingHorizontal: 14,
+                                paddingVertical: 10,
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: 6,
+                            }}
+                        >
+                            <Ionicons name="help-circle" size={22} color={colors.blue} />
+                            <T weight="bold" style={{ fontSize: 14 }}>
+                                Panduan
+                            </T>
+                        </PressableScale>
                     </View>
                 </FadeInUp>
 
@@ -302,6 +330,10 @@ export default function Home() {
                     </View>
                 </FadeInUp>
             </ScrollView>
+            <GuideModal
+                visible={!!state.hydrated && !state.seenGuide}
+                onDone={() => dispatch({ type: 'SEEN_GUIDE' })}
+            />
         </Screen>
     )
 }

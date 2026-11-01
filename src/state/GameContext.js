@@ -32,6 +32,7 @@ export const initialState = {
   weak: [], // konsep yang perlu diulang
   history: [],
   streak3: false,
+  seenGuide: false,
   position: { stageId: 1, step: 'materi' },
 };
 
@@ -55,6 +56,10 @@ export function gameReducer(state, a) {
       return { ...initialState, hydrated: true };
     case 'SET_HEARTS':
       return { ...state, hearts: a.hearts };
+    case 'SEEN_GUIDE':
+      return { ...state, seenGuide: true };
+    case 'SHOW_GUIDE':
+      return { ...state, seenGuide: false };
     case 'SET_POSITION':
       return { ...state, position: { stageId: a.stageId, step: a.step } };
     case 'GAME_OVER':
@@ -66,12 +71,15 @@ export function gameReducer(state, a) {
     case 'COMPLETE': {
       const { stageId, practice, score, xp, hearts, perfect, streak3, wrong, cleared, title } = a;
       const prev = stageId ? state.completed[stageId] : null;
+      const prevTiers = prev && prev.tiers ? prev.tiers : {};
+      const nextTiers = a.tier ? { ...prevTiers, [a.tier]: true } : prevTiers;
       const completed = stageId
         ? {
             ...state.completed,
             [stageId]: {
               score: Math.max(prev ? prev.score : 0, score),
               perfect: !!((prev && prev.perfect) || perfect),
+              tiers: nextTiers,
             },
           }
         : state.completed;
@@ -131,6 +139,7 @@ export function GameProvider({ children }) {
     state.weak,
     state.history,
     state.streak3,
+    state.seenGuide,
     state.position,
   ]);
 

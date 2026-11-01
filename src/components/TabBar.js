@@ -8,6 +8,7 @@ import { colors, shadow } from '../theme';
 const TABS = [
   { key: 'Home', label: 'Beranda', icon: 'home' },
   { key: 'Progress', label: 'Progres', icon: 'stats-chart' },
+  { key: 'Leaderboard', label: 'Peringkat', icon: 'trophy' },
   { key: 'Badges', label: 'Lencana', icon: 'star' },
   { key: 'Profile', label: 'Profil', icon: 'person' },
 ];
@@ -20,9 +21,9 @@ function Tab({ tab, active, onPress }) {
   return (
     <Pressable onPress={onPress} style={{ flex: 1, alignItems: 'center', paddingVertical: 4 }}>
       <Animated.View style={{ transform: [{ scale: s }] }}>
-        <Ionicons name={tab.icon} size={30} color={active ? colors.blue : colors.slate} />
+        <Ionicons name={tab.icon} size={26} color={active ? colors.blue : colors.slate} />
       </Animated.View>
-      <T weight="bold" style={{ fontSize: 14, marginTop: 4, color: active ? colors.navy : colors.slate }}>
+      <T weight="bold" style={{ fontSize: 12, marginTop: 4, color: active ? colors.navy : colors.slate }}>
         {tab.label}
       </T>
     </Pressable>

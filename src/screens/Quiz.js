@@ -26,14 +26,17 @@ const START_LEVEL = 1; // mulai dari "Sedang"
 export default function Quiz({ params }) {
   const nav = useNav();
   const { state, dispatch } = useGame();
-  const { stageId, practice } = params;
+  const { stageId, practice, tier = null } = params;
   const stage = practice ? null : STAGES.find((x) => x.id === stageId);
-  const title = practice ? 'Latihan' : `Stage ${stageId}: ${stage.title}`;
+  const tierObj = tier ? LEVELS.find((l) => l.key === tier) : null;
+  const title = practice
+    ? 'Latihan'
+    : `Stage ${stageId}: ${stage.title}${tierObj ? ` (${tierObj.label})` : ''}`;
   const shake = useRef(new Animated.Value(0)).current;
 
   // bank soal untuk sesi ini
   const pool = useMemo(() => {
-    if (!practice) return flattenStage(stage);
+    if (!practice) return flattenStage(stage, tier);
     const qs = STAGES.filter((x) => isUnlocked(state, x.id)).flatMap((x) => flattenStage(x));
     const weakQs = qs.filter((q) => state.weak.includes(q.concept));
     return weakQs.length >= 3 ? weakQs : qs;
@@ -51,9 +54,10 @@ export default function Quiz({ params }) {
   };
 
   const makeInitial = () => {
-    const q = pickNext(START_LEVEL, []);
+    const initLvl = tier ? Math.max(0, LEVELS.findIndex((l) => l.key === tier)) : START_LEVEL;
+    const q = pickNext(initLvl, []);
     return {
-      level: START_LEVEL,
+      level: initLvl,
       q,
       used: [q.id],
       index: 0,
@@ -189,6 +193,7 @@ export default function Quiz({ params }) {
     const action = {
       type: 'COMPLETE',
       stageId: practice ? null : stageId,
+      tier,
       practice: !!practice,
       title,
       score,
@@ -248,7 +253,7 @@ export default function Quiz({ params }) {
 
   const retry = () => {
     dispatch({ type: 'SET_HEARTS', hearts: 3 });
-    nav.replace('Materi', { stageId, page: 0 });
+    nav.replace('Materi', { stageId, page: 0, tier });
   };
 
   // match: ketuk potongan atau seret-lepas ke kotak

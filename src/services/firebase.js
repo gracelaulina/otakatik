@@ -284,6 +284,7 @@ export async function saveUserProgress(user, stateToSave) {
     weak: stateToSave.weak,
     history: (stateToSave.history || []).slice(0, 30),
     streak3: stateToSave.streak3,
+    seenGuide: !!stateToSave.seenGuide,
     position: stateToSave.position,
     updatedAt: Date.now(),
   };

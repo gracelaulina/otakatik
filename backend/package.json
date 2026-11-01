@@ -1,0 +1,12 @@
+{
+  "name": "otakatik-backend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "migrate": "node create-table.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "mysql2": "^3.22.0"
+  }
+}
