@@ -118,42 +118,53 @@ export default function Home() {
         return () => loop.stop()
     }, [])
 
-    // Ukur posisi elemen secara presisi di layar setelah scroll selesai
-    const measureStep = (idx) => {
-        const key = GUIDE_STEPS[idx]?.key
+    // Ukur & sinkronkan perpindahan langkah dengan posisi spotlight tanpa jeda blink
+    const goToStep = (nextIdx, isInitial = false) => {
+        const key = GUIDE_STEPS[nextIdx]?.key
         if (!key) return
+
+        const needsScroll = key === 'main' || key === 'actions' || (isInitial && key === 'stats')
 
         if (scrollRef.current) {
             if (key === 'actions') {
                 scrollRef.current.scrollToEnd({ animated: true })
             } else if (key === 'main') {
                 scrollRef.current.scrollTo({ y: 95, animated: true })
-            } else {
+            } else if (key === 'stats' || key === 'resume') {
                 scrollRef.current.scrollTo({ y: 0, animated: true })
             }
         }
 
-        setTimeout(() => {
+        const runMeasure = () => {
             const ref = key === 'tabs' ? globalTabBarRef : targetRefs.current[key]
             if (ref && ref.measureInWindow) {
                 ref.measureInWindow((x, y, w, h) => {
                     if (w > 0 && h > 0) {
+                        setGuideStep(nextIdx)
                         setTargetRect({ x, y, w, h })
                     }
                 })
             }
-        }, 320)
+        }
+
+        // Langkah tanpa scroll (misal Nyawa & XP -> Stage 1, atau ke Tab Bawah) langsung diukur 0ms
+        const delay = isInitial ? 180 : needsScroll ? 240 : 0
+        if (delay === 0) {
+            runMeasure()
+        } else {
+            setTimeout(runMeasure, delay)
+        }
     }
 
     useEffect(() => {
         if (guideVisible) {
-            measureStep(guideStep)
+            goToStep(0, true)
         }
-    }, [guideVisible, guideStep])
+    }, [guideVisible])
 
     const handleNextGuide = () => {
         if (guideStep < GUIDE_STEPS.length - 1) {
-            setGuideStep(guideStep + 1)
+            goToStep(guideStep + 1)
         } else {
             setGuideStep(0)
             if (scrollRef.current) scrollRef.current.scrollTo({ y: 0, animated: true })
