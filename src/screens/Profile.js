@@ -9,7 +9,7 @@ import FadeInUp from '../components/FadeInUp';
 import { useNav } from '../navigation/NavContext';
 import { useGame, levelFromXp, getBadges } from '../state/GameContext';
 import { colors, shadow } from '../theme';
-import { logoutUser, isFirebaseConfigured } from '../services/firebase';
+import { logoutUser, deleteCurrentAccount, isFirebaseConfigured } from '../services/firebase';
 import { feedback, isSoundEnabled, setSoundEnabled } from '../services/feedback';
 
 export default function Profile() {
@@ -35,13 +35,20 @@ export default function Profile() {
     nav.reset('Login');
   };
 
+  const handleDeleteAccount = async () => {
+    feedback.wrong();
+    await deleteCurrentAccount(state.user);
+    dispatch({ type: 'LOGOUT' });
+    nav.reset('Login');
+  };
+
   return (
     <Screen padBottom={100}>
       <View style={{ flex: 1, alignItems: 'center', paddingTop: 12 }}>
-        <Mascot size={130} />
+        <Mascot size={120} />
         <FadeInUp delay={100}>
-          <T weight="bold" style={{ fontSize: 34, textAlign: 'center', marginTop: 6 }}>{user.name}</T>
-          <T weight="semi" style={{ color: colors.slate, fontSize: 17, textAlign: 'center' }}>{user.email}</T>
+          <T weight="bold" style={{ fontSize: 32, textAlign: 'center', marginTop: 6 }}>{user.name}</T>
+          <T weight="semi" style={{ color: colors.slate, fontSize: 16, textAlign: 'center' }}>{user.email}</T>
           <View
             style={{
               flexDirection: 'row',
@@ -65,20 +72,20 @@ export default function Profile() {
           </View>
         </FadeInUp>
 
-        <FadeInUp delay={200} style={{ flexDirection: 'row', gap: 12, marginTop: 22, alignSelf: 'stretch' }}>
+        <FadeInUp delay={200} style={{ flexDirection: 'row', gap: 12, marginTop: 18, alignSelf: 'stretch' }}>
           {[
             ['Level', levelFromXp(state.xp)],
             ['Stage tuntas', done],
             ['Lencana', badges],
           ].map(([label, val]) => (
-            <View key={label} style={[{ flex: 1, backgroundColor: '#fff', borderRadius: 24, paddingVertical: 18, alignItems: 'center' }, shadow]}>
-              <T weight="bold" style={{ fontSize: 30 }}>{val}</T>
+            <View key={label} style={[{ flex: 1, backgroundColor: '#fff', borderRadius: 24, paddingVertical: 16, alignItems: 'center' }, shadow]}>
+              <T weight="bold" style={{ fontSize: 28 }}>{val}</T>
               <T weight="semi" style={{ color: colors.slate, fontSize: 14 }}>{label}</T>
             </View>
           ))}
         </FadeInUp>
 
-        <FadeInUp delay={280} style={{ alignSelf: 'stretch', marginTop: 16 }}>
+        <FadeInUp delay={280} style={{ alignSelf: 'stretch', marginTop: 14 }}>
           <Pressable
             onPress={toggleSound}
             style={[
@@ -86,7 +93,7 @@ export default function Profile() {
                 backgroundColor: '#fff',
                 borderRadius: 24,
                 paddingHorizontal: 20,
-                paddingVertical: 16,
+                paddingVertical: 14,
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -96,7 +103,7 @@ export default function Profile() {
           >
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Ionicons name={soundOn ? 'volume-high' : 'volume-mute'} size={24} color={colors.blue} />
-              <T weight="bold" style={{ fontSize: 18, marginLeft: 12 }}>
+              <T weight="bold" style={{ fontSize: 17, marginLeft: 12 }}>
                 Suara & Getaran
               </T>
             </View>
@@ -115,7 +122,18 @@ export default function Profile() {
           </Pressable>
         </FadeInUp>
       </View>
-      <Button3D title="Keluar" variant="white" onPress={logout} />
+
+      <View style={{ gap: 10 }}>
+        <Button3D title="Keluar" variant="white" onPress={logout} />
+        <Pressable
+          onPress={handleDeleteAccount}
+          style={{ alignItems: 'center', paddingVertical: 8 }}
+        >
+          <T weight="bold" style={{ fontSize: 15, color: colors.redDark }}>
+            Hapus Akun & Reset Data Ini
+          </T>
+        </Pressable>
+      </View>
     </Screen>
   );
 }

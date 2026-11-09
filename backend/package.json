@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "migrate": "node create-table.js"
+    "migrate": "node create-table.js",
+    "seed": "node seed.js",
+    "setup": "node create-table.js && node seed.js",
+    "start": "node server.js"
   },
   "dependencies": {
     "dotenv": "^17.4.2",

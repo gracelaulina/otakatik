@@ -1,40 +1,93 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Screen from '../components/Screen';
 import T from '../components/T';
 import FadeInUp from '../components/FadeInUp';
 import { useGame, levelFromXp } from '../state/GameContext';
+import { fetchLeaderboard } from '../services/firebase';
 import { colors, shadow } from '../theme';
 
-// shortcut: data rival statis di memori sampai endpoint CRUD MySQL/Firestore untuk leaderboard kelas disambungkan
-const RIVALS = [
-  { id: 'r1', name: 'Grace', xp: 340 },
-  { id: 'r2', name: 'Ayu', xp: 280 },
-  { id: 'r3', name: 'Dhea', xp: 210 },
-  { id: 'r4', name: 'Faris', xp: 150 },
-  { id: 'r5', name: 'Nadia', xp: 90 },
+const FALLBACK_RIVALS = [
+  { id: 'grace@otakatik.id', email: 'grace@otakatik.id', name: 'Grace', xp: 340 },
+  { id: 'ayu@otakatik.id', email: 'ayu@otakatik.id', name: 'Ayu', xp: 280 },
+  { id: 'dhea@otakatik.id', email: 'dhea@otakatik.id', name: 'Dhea', xp: 210 },
+  { id: 'faris@otakatik.id', email: 'faris@otakatik.id', name: 'Faris', xp: 150 },
+  { id: 'nadia@otakatik.id', email: 'nadia@otakatik.id', name: 'Nadia', xp: 90 },
 ];
 
 const MEDAL = ['#FFD166', '#D9E2EC', '#F4A261'];
 
 export default function Leaderboard() {
   const { state } = useGame();
+  const [cloudRows, setCloudRows] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    fetchLeaderboard().then((list) => {
+      if (active && list) {
+        setCloudRows(list);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [state.xp]);
+
+  const meName = state.user ? state.user.name : 'Kamu';
+  const meEmail = state.user?.email ? state.user.email.toLowerCase() : 'me_local';
   const me = {
-    id: 'me',
-    name: state.user ? state.user.name : 'Kamu',
+    id: meEmail,
+    email: meEmail,
+    name: meName,
     xp: state.xp,
     isMe: true,
   };
 
-  const rows = [...RIVALS.filter((r) => r.name.toLowerCase() !== me.name.toLowerCase()), me]
+  // Pisahkan tiap akun berdasarkan email unik (bukan nama saja) agar akun berbeda tidak pernah menyatu
+  const combinedSource = [...(cloudRows || []), ...FALLBACK_RIVALS];
+  const seenEmails = new Set([meEmail]);
+  const others = [];
+
+  for (const r of combinedSource) {
+    const rEmail = String(r.email || r.id || '').toLowerCase();
+    if (!rEmail || seenEmails.has(rEmail)) continue;
+    seenEmails.add(rEmail);
+    others.push({
+      id: rEmail,
+      email: rEmail,
+      name: r.name,
+      xp: Number(r.xp || 0),
+      isMe: false,
+    });
+  }
+
+  const rows = [...others, me]
     .sort((a, b) => b.xp - a.xp)
     .map((item, idx) => ({ ...item, rank: idx + 1 }));
 
   return (
     <Screen padBottom={100}>
       <FadeInUp>
-        <T weight="bold" style={{ fontSize: 40 }}>Peringkat</T>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <T weight="bold" style={{ fontSize: 40 }}>Peringkat</T>
+          {cloudRows && (
+            <View
+              style={{
+                backgroundColor: colors.mint,
+                paddingHorizontal: 10,
+                paddingVertical: 5,
+                borderRadius: 999,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 4,
+              }}
+            >
+              <Ionicons name="cloud-done" size={14} color={colors.navy} />
+              <T weight="bold" style={{ fontSize: 12 }}>Firebase Live</T>
+            </View>
+          )}
+        </View>
         <T weight="semi" style={{ color: colors.slate, fontSize: 18, marginTop: 4, marginBottom: 16 }}>
           Peringkatmu: #{rows.find((r) => r.isMe)?.rank} dengan {me.xp} XP
         </T>
