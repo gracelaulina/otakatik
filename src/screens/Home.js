@@ -364,7 +364,17 @@ export default function Home() {
                         />
 
                         <Animated.View style={{ transform: [{ translateY: float }] }}>
-                            <Mascot size={160} />
+                            <Mascot
+  size={160}
+  mascotColor={state.mascot?.color}
+  hair={state.mascot?.hair}
+  hairColor={state.mascot?.hairColor}
+  hat={state.mascot?.hat}
+  outfit={state.mascot?.outfit}
+  outfitColor={state.mascot?.outfitColor}
+  faceAccessory={state.mascot?.faceAccessory}
+  extraAccessory={state.mascot?.extraAccessory}
+/>
                         </Animated.View>
 
                         <T

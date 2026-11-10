@@ -30,7 +30,18 @@ export default function Progress() {
               <T weight="semi" style={{ fontSize: 17, marginBottom: 10 }}>{state.xp} / {next} XP</T>
               <AnimatedBar progress={inLevel / 100} height={10} />
             </View>
-            <Mascot size={74} style={{ marginLeft: 16 }} />
+            <Mascot
+  size={74}
+  style={{ marginLeft: 16 }}
+  mascotColor={state.mascot?.color}
+  hair={state.mascot?.hair}
+  hairColor={state.mascot?.hairColor}
+  hat={state.mascot?.hat}
+  outfit={state.mascot?.outfit}
+  outfitColor={state.mascot?.outfitColor}
+  faceAccessory={state.mascot?.faceAccessory}
+  extraAccessory={state.mascot?.extraAccessory}
+/>
           </View>
         </FadeInUp>
         {STAGES.map((s, i) => {
@@ -47,14 +58,57 @@ export default function Progress() {
             </FadeInUp>
           );
         })}
-        <FadeInUp delay={420}>
-          <View style={{ backgroundColor: colors.pink, borderRadius: 26, padding: 20 }}>
-            <T weight="bold" style={{ fontSize: 20 }}>Konsep perlu diulang</T>
-            <T weight="semi" style={{ fontSize: 19, marginTop: 6 }}>
-              {state.weak.length ? state.weak.join(', ') : 'Belum ada. Lanjutkan belajar!'}
-            </T>
-          </View>
-        </FadeInUp>
+<FadeInUp delay={420}>
+  <View
+    style={{
+      backgroundColor: '#FCE7F3',
+      borderRadius: 22,
+      padding: 18,
+      marginTop: 8,
+      marginBottom: 12,
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 14,
+    }}
+  >
+    <View
+      style={{
+        width: 44,
+        height: 44,
+        borderRadius: 14,
+        backgroundColor: '#F9B8DC',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <T style={{ fontSize: 23 }}>💡</T>
+    </View>
+
+    <View style={{ flex: 1 }}>
+      <T weight="bold" style={{ fontSize: 18 }}>
+        Rekomendasi Belajar
+      </T>
+
+      <T
+        weight="semi"
+        style={{ fontSize: 14, marginTop: 5, color: '#80516F' }}
+      >
+        {state.weak.length
+          ? 'Materi yang perlu kamu ulang:'
+          : 'Hebat! Belum ada materi yang perlu diulang.'}
+      </T>
+
+      {state.weak.length > 0 && (
+        <T
+          weight="bold"
+          style={{ fontSize: 16, marginTop: 5 }}
+        >
+          {state.weak.join(', ')}
+        </T>
+      )}
+    </View>
+  </View>
+</FadeInUp>
       </ScrollView>
     </Screen>
   );

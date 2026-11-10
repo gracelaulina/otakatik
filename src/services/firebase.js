@@ -534,10 +534,14 @@ export async function loadUserProgress(user) {
   return localData;
 }
 
+
+
 export async function saveUserProgress(user, stateToSave) {
   if (!user || !user.email) return false;
+
   const cleanEmail = normalizeEmail(user.email);
   const key = STORAGE_PROGRESS_PREFIX + cleanEmail;
+
   const payload = {
     hearts: stateToSave.hearts,
     xp: stateToSave.xp,
@@ -547,16 +551,33 @@ export async function saveUserProgress(user, stateToSave) {
     streak3: stateToSave.streak3,
     seenGuide: !!stateToSave.seenGuide,
     position: stateToSave.position,
+
+    // Simpan seluruh kustomisasi robot Atik
+    mascot: {
+      color: stateToSave.mascot?.color || '#4DA8FF',
+      accessory: stateToSave.mascot?.accessory || 'none',
+      hair: stateToSave.mascot?.hair || 'none',
+      hairColor: stateToSave.mascot?.hairColor || '#49315F',
+      hat: stateToSave.mascot?.hat || 'none',
+      outfit: stateToSave.mascot?.outfit || 'none',
+      outfitColor: stateToSave.mascot?.outfitColor || '#FF8FB1',
+      faceAccessory: stateToSave.mascot?.faceAccessory || 'none',
+      extraAccessory: stateToSave.mascot?.extraAccessory || 'none',
+    },
+
     updatedAt: Date.now(),
   };
 
   try {
     await AsyncStorage.setItem(key, JSON.stringify(payload));
-  } catch {}
+  } catch (err) {
+    console.warn('Gagal menyimpan progres lokal:', err);
+  }
 
   if (isFirebaseConfigured() && db) {
     try {
       const ref = doc(db, 'users', cleanEmail);
+
       await setDoc(
         ref,
         {
@@ -567,11 +588,16 @@ export async function saveUserProgress(user, stateToSave) {
         },
         { merge: true }
       );
+
       return true;
-    } catch {}
+    } catch (err) {
+      console.warn('Gagal menyinkronkan progres Firebase:', err);
+    }
   }
+
   return false;
 }
+
 
 export async function fetchLeaderboard() {
   if (!isFirebaseConfigured() || !db) return null;
