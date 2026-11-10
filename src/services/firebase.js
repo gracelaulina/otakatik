@@ -416,6 +416,46 @@ export async function logoutUser() {
   } catch {}
 }
 
+/**
+ * Ubah nama panggilan pengguna (validasi nama unik + simpan ke Firestore, Auth & AsyncStorage)
+ */
+export async function updateUserName(user, newName) {
+  const cleanName = String(newName || '').trim();
+  if (!cleanName) {
+    throw new Error('Nama panggilan tidak boleh kosong.');
+  }
+  const cleanEmail = normalizeEmail(user?.email || '');
+  if (await isNameTaken(cleanName, cleanEmail)) {
+    throw new Error(`Nama "${cleanName}" sudah dipakai siswa lain. Pilih nama lain!`);
+  }
+
+  const updatedUser = { ...user, name: cleanName };
+  try {
+    await AsyncStorage.setItem(STORAGE_USER_KEY, JSON.stringify(updatedUser));
+    if (cleanEmail) {
+      const accounts = await getLocalAccounts();
+      if (accounts[cleanEmail]) {
+        accounts[cleanEmail].name = cleanName;
+        await AsyncStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(accounts));
+      }
+    }
+  } catch {}
+
+  if (isFirebaseConfigured() && auth && auth.currentUser) {
+    await updateProfile(auth.currentUser, { displayName: cleanName }).catch(() => {});
+  }
+
+  if (isFirebaseConfigured() && db && cleanEmail) {
+    await setDoc(
+      doc(db, 'users', cleanEmail),
+      { name: cleanName, syncedAt: serverTimestamp() },
+      { merge: true }
+    ).catch(() => {});
+  }
+
+  return updatedUser;
+}
+
 export async function deleteCurrentAccount(user) {
   const cleanEmail = user?.email ? normalizeEmail(user.email) : '';
   let savedPass = null;

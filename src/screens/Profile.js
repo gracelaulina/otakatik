@@ -1,15 +1,21 @@
 import React, { useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { Modal, Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Screen from '../components/Screen';
 import T from '../components/T';
 import Mascot from '../components/Mascot';
+import Field from '../components/Field';
 import Button3D from '../components/Button3D';
 import FadeInUp from '../components/FadeInUp';
 import { useNav } from '../navigation/NavContext';
 import { useGame, levelFromXp, getBadges } from '../state/GameContext';
 import { colors, shadow } from '../theme';
-import { logoutUser, deleteCurrentAccount, isFirebaseConfigured } from '../services/firebase';
+import {
+  logoutUser,
+  deleteCurrentAccount,
+  updateUserName,
+  isFirebaseConfigured,
+} from '../services/firebase';
 import { feedback, isSoundEnabled, setSoundEnabled } from '../services/feedback';
 
 export default function Profile() {
@@ -19,6 +25,10 @@ export default function Profile() {
   const badges = getBadges(state).filter((b) => b.unlocked).length;
   const done = Object.keys(state.completed).length;
   const [soundOn, setSoundOn] = useState(isSoundEnabled());
+  const [editModal, setEditModal] = useState(false);
+  const [newName, setNewName] = useState(user.name);
+  const [editError, setEditError] = useState('');
+  const [busy, setBusy] = useState(false);
   const cloudActive = isFirebaseConfigured();
 
   const toggleSound = () => {
@@ -26,6 +36,30 @@ export default function Profile() {
     setSoundEnabled(next);
     setSoundOn(next);
     if (next) feedback.tap();
+  };
+
+  const openEditName = () => {
+    feedback.tap();
+    setNewName(user.name);
+    setEditError('');
+    setEditModal(true);
+  };
+
+  const saveEditName = async () => {
+    if (busy) return;
+    setBusy(true);
+    setEditError('');
+    try {
+      const updated = await updateUserName(user, newName);
+      dispatch({ type: 'UPDATE_USER', user: updated });
+      feedback.correct();
+      setEditModal(false);
+    } catch (err) {
+      feedback.wrong();
+      setEditError(err.message || 'Gagal menyimpan nama baru.');
+    } finally {
+      setBusy(false);
+    }
   };
 
   const logout = async () => {
@@ -46,8 +80,25 @@ export default function Profile() {
     <Screen padBottom={100}>
       <View style={{ flex: 1, alignItems: 'center', paddingTop: 12 }}>
         <Mascot size={120} />
-        <FadeInUp delay={100}>
-          <T weight="bold" style={{ fontSize: 32, textAlign: 'center', marginTop: 6 }}>{user.name}</T>
+        <FadeInUp delay={100} style={{ alignItems: 'center' }}>
+          <Pressable
+            onPress={openEditName}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 }}
+          >
+            <T weight="bold" style={{ fontSize: 32, textAlign: 'center' }}>{user.name}</T>
+            <View
+              style={{
+                width: 30,
+                height: 30,
+                borderRadius: 15,
+                backgroundColor: '#fff',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Ionicons name="pencil" size={15} color={colors.blue} />
+            </View>
+          </Pressable>
           <T weight="semi" style={{ color: colors.slate, fontSize: 16, textAlign: 'center' }}>{user.email}</T>
           <View
             style={{
@@ -134,6 +185,61 @@ export default function Profile() {
           </T>
         </Pressable>
       </View>
+
+      {/* Modal Ubah Nama Panggilan */}
+      <Modal
+        visible={editModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setEditModal(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(10, 9, 66, 0.65)',
+            justifyContent: 'center',
+            padding: 20,
+          }}
+        >
+          <View style={[{ backgroundColor: '#fff', borderRadius: 30, padding: 22 }, shadow]}>
+            <T weight="bold" style={{ fontSize: 22, marginBottom: 6 }}>
+              Ubah Nama Panggilan
+            </T>
+            <T weight="semi" style={{ fontSize: 14, color: colors.slate, marginBottom: 14 }}>
+              Masukkan nama unik yang akan tampil di Beranda dan Peringkat kelas:
+            </T>
+
+            <Field
+              placeholder="Nama panggilan baru"
+              value={newName}
+              onChangeText={setNewName}
+              style={{ backgroundColor: colors.bg, marginBottom: 12 }}
+            />
+
+            {editError ? (
+              <T weight="semi" style={{ color: colors.redDark, textAlign: 'center', marginBottom: 10, fontSize: 14 }}>
+                {editError}
+              </T>
+            ) : null}
+
+            <Button3D
+              title={busy ? 'Menyimpan...' : 'Simpan Nama'}
+              variant="blue"
+              disabled={busy}
+              onPress={saveEditName}
+            />
+
+            <Pressable
+              onPress={() => setEditModal(false)}
+              style={{ alignItems: 'center', paddingTop: 14, paddingBottom: 4 }}
+            >
+              <T weight="bold" style={{ fontSize: 15, color: colors.slate }}>
+                Batal
+              </T>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </Screen>
   );
 }

@@ -52,6 +52,11 @@ export function gameReducer(state, a) {
         user: a.user,
         hydrated: true,
       };
+    case 'UPDATE_USER':
+      return {
+        ...state,
+        user: a.user,
+      };
     case 'LOGOUT':
       return { ...initialState, hydrated: true };
     case 'SET_HEARTS':

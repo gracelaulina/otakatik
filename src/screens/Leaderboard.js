@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Screen from '../components/Screen';
 import T from '../components/T';
 import FadeInUp from '../components/FadeInUp';
 import { useGame, levelFromXp } from '../state/GameContext';
 import { fetchLeaderboard } from '../services/firebase';
-import { colors, shadow } from '../theme';
+import { colors, fonts, shadow } from '../theme';
 
 const FALLBACK_RIVALS = [
   { id: 'grace@otakatik.id', email: 'grace@otakatik.id', name: 'Grace', xp: 340 },
@@ -21,6 +21,7 @@ const MEDAL = ['#FFD166', '#D9E2EC', '#F4A261'];
 export default function Leaderboard() {
   const { state } = useGame();
   const [cloudRows, setCloudRows] = useState(null);
+  const [query, setQuery] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -32,7 +33,7 @@ export default function Leaderboard() {
     return () => {
       active = false;
     };
-  }, [state.xp]);
+  }, [state.xp, state.user?.name]);
 
   const meName = state.user ? state.user.name : 'Kamu';
   const meEmail = state.user?.email ? state.user.email.toLowerCase() : 'me_local';
@@ -44,7 +45,6 @@ export default function Leaderboard() {
     isMe: true,
   };
 
-  // Pisahkan tiap akun berdasarkan email unik (bukan nama saja) agar akun berbeda tidak pernah menyatu
   const combinedSource = [...(cloudRows || []), ...FALLBACK_RIVALS];
   const seenEmails = new Set([meEmail]);
   const others = [];
@@ -62,9 +62,18 @@ export default function Leaderboard() {
     });
   }
 
-  const rows = [...others, me]
-    .sort((a, b) => b.xp - a.xp)
-    .map((item, idx) => ({ ...item, rank: idx + 1 }));
+  const sorted = [...others, me].sort((a, b) => b.xp - a.xp || a.name.localeCompare(b.name));
+  const rows = [];
+  for (let idx = 0; idx < sorted.length; idx++) {
+    const item = sorted[idx];
+    const rank = idx > 0 && item.xp === sorted[idx - 1].xp ? rows[idx - 1].rank : idx + 1;
+    rows.push({ ...item, rank });
+  }
+
+  const qLower = query.trim().toLowerCase();
+  const visibleRows = qLower
+    ? rows.filter((r) => r.name.toLowerCase().includes(qLower))
+    : rows;
 
   return (
     <Screen padBottom={100}>
@@ -88,14 +97,45 @@ export default function Leaderboard() {
             </View>
           )}
         </View>
-        <T weight="semi" style={{ color: colors.slate, fontSize: 18, marginTop: 4, marginBottom: 16 }}>
+        <T weight="semi" style={{ color: colors.slate, fontSize: 17, marginTop: 4, marginBottom: 12 }}>
           Peringkatmu: #{rows.find((r) => r.isMe)?.rank} dengan {me.xp} XP
         </T>
+
+        {/* Pencarian Siswa */}
+        <View
+          style={[
+            {
+              backgroundColor: '#fff',
+              borderRadius: 20,
+              height: 46,
+              paddingHorizontal: 16,
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginBottom: 14,
+            },
+            shadow,
+          ]}
+        >
+          <Ionicons name="search" size={18} color={colors.slate} />
+          <TextInput
+            placeholder="Cari nama siswa..."
+            placeholderTextColor={colors.slate}
+            value={query}
+            onChangeText={setQuery}
+            style={{
+              flex: 1,
+              marginLeft: 10,
+              fontSize: 16,
+              fontFamily: fonts.semi,
+              color: colors.navy,
+            }}
+          />
+        </View>
       </FadeInUp>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
-        {rows.map((item, i) => (
-          <FadeInUp key={item.id} delay={60 * i}>
+        {visibleRows.map((item, i) => (
+          <FadeInUp key={item.id} delay={50 * i}>
             <View
               style={[
                 {
@@ -116,13 +156,13 @@ export default function Leaderboard() {
                   width: 42,
                   height: 42,
                   borderRadius: 21,
-                  backgroundColor: MEDAL[i] || colors.bg,
+                  backgroundColor: MEDAL[item.rank - 1] || colors.bg,
                   alignItems: 'center',
                   justifyContent: 'center',
                   marginRight: 14,
                 }}
               >
-                {i < 3 ? (
+                {item.rank <= 3 ? (
                   <Ionicons name="trophy" size={20} color={colors.navy} />
                 ) : (
                   <T weight="bold" style={{ fontSize: 17 }}>{item.rank}</T>
