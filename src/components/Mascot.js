@@ -2,26 +2,41 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, View } from 'react-native';
 import { colors } from '../theme';
+import { useGame } from '../state/GameContext';
 
 export default function Mascot({
   size = 160,
   mood = 'happy',
   bob = true,
   style,
-  mascotColor = colors.mascot,
+  config,
+  mascotColor,
 
   // Kustomisasi baru
-  hair = 'none',
-  hairColor = '#49315F',
-  hat = 'none',
-  outfit = 'none',
-  outfitColor = '#FF8FB1',
-  faceAccessory = 'none',
-  extraAccessory = 'none',
+  hair,
+  hairColor,
+  hat,
+  outfit,
+  outfitColor,
+  faceAccessory,
+  extraAccessory,
 
   // Kompatibilitas dengan sistem lama
-  accessory = 'none',
+  accessory,
 }) {
+  const game = useGame();
+  const activeMascot = config !== undefined ? config : game?.state?.user ? game?.state?.mascot : null;
+
+  mascotColor = mascotColor ?? activeMascot?.color ?? colors.mascot;
+  hair = hair ?? activeMascot?.hair ?? 'none';
+  hairColor = hairColor ?? activeMascot?.hairColor ?? '#49315F';
+  hat = hat ?? activeMascot?.hat ?? 'none';
+  outfit = outfit ?? activeMascot?.outfit ?? 'none';
+  outfitColor = outfitColor ?? activeMascot?.outfitColor ?? '#FF8FB1';
+  faceAccessory = faceAccessory ?? activeMascot?.faceAccessory ?? 'none';
+  extraAccessory = extraAccessory ?? activeMascot?.extraAccessory ?? 'none';
+  accessory = accessory ?? activeMascot?.accessory ?? 'none';
+
   const S = size;
   const float = useRef(new Animated.Value(0)).current;
   const blink = useRef(new Animated.Value(1)).current;

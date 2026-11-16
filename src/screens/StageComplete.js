@@ -3,6 +3,7 @@ import { ScrollView, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Screen from '../components/Screen';
 import T from '../components/T';
+import Mascot from '../components/Mascot';
 import PopIn from '../components/PopIn';
 import FadeInUp from '../components/FadeInUp';
 import CountUp from '../components/CountUp';
@@ -56,12 +57,15 @@ export default function StageComplete({ params }) {
       <Screen>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 16 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-start', gap: 8 }}>
-            <Star filled={stars >= 1} size={64} delay={200} style={{ marginTop: 28 }} />
-            <Star filled={stars >= 2} size={92} delay={400} />
-            <Star filled={stars >= 3} size={64} delay={600} style={{ marginTop: 28 }} />
+            <Star filled={stars >= 1} size={56} delay={200} style={{ marginTop: 24 }} />
+            <Star filled={stars >= 2} size={80} delay={400} />
+            <Star filled={stars >= 3} size={56} delay={600} style={{ marginTop: 24 }} />
+          </View>
+          <View style={{ alignItems: 'center', marginTop: 4 }}>
+            <Mascot size={105} />
           </View>
           <FadeInUp delay={300}>
-            <T weight="bold" style={{ fontSize: 40, textAlign: 'center', marginVertical: 16 }}>{practice ? 'Latihan Selesai!' : 'Stage Selesai!'}</T>
+            <T weight="bold" style={{ fontSize: 36, textAlign: 'center', marginVertical: 12 }}>{practice ? 'Latihan Selesai!' : 'Stage Selesai!'}</T>
           </FadeInUp>
           <View style={{ flexDirection: 'row', gap: 12 }}>
             <Stat label="Skor"><CountUp to={score} style={{ fontSize: 36 }} /></Stat>

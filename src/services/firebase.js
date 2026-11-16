@@ -523,7 +523,13 @@ export async function loadUserProgress(user) {
       const snap = await getDoc(ref);
       if (snap.exists()) {
         const cloudData = snap.data();
-        if (!localData || (cloudData.xp || 0) >= (localData.xp || 0)) {
+        const cloudXp = cloudData.xp || 0;
+        const localXp = localData?.xp || 0;
+        if (
+          !localData ||
+          cloudXp > localXp ||
+          (cloudXp === localXp && (cloudData.updatedAt || 0) >= (localData.updatedAt || 0))
+        ) {
           await AsyncStorage.setItem(key, JSON.stringify(cloudData));
           return cloudData;
         }
@@ -612,6 +618,7 @@ export async function fetchLeaderboard() {
           name: d.name,
           email: d.email || docSnap.id,
           xp: Number(d.xp || 0),
+          mascot: d.mascot || null,
         });
       }
     });

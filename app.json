@@ -5,12 +5,16 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#DCEEFF"
+    },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.example.otakatik"
+      "bundleIdentifier": "com.otakatik.app"
     },
     "android": {
-      "package": "com.example.otakatik"
+      "package": "com.otakatik.app",
+      "versionCode": 1
     },
     "plugins": [
       "expo-font",

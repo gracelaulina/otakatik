@@ -3,17 +3,48 @@ import { ScrollView, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Screen from '../components/Screen';
 import T from '../components/T';
+import Mascot from '../components/Mascot';
 import FadeInUp from '../components/FadeInUp';
 import { useGame, levelFromXp } from '../state/GameContext';
 import { fetchLeaderboard } from '../services/firebase';
 import { colors, fonts, shadow } from '../theme';
 
 const FALLBACK_RIVALS = [
-  { id: 'grace@otakatik.id', email: 'grace@otakatik.id', name: 'Grace', xp: 340 },
-  { id: 'ayu@otakatik.id', email: 'ayu@otakatik.id', name: 'Ayu', xp: 280 },
-  { id: 'dhea@otakatik.id', email: 'dhea@otakatik.id', name: 'Dhea', xp: 210 },
-  { id: 'faris@otakatik.id', email: 'faris@otakatik.id', name: 'Faris', xp: 150 },
-  { id: 'nadia@otakatik.id', email: 'nadia@otakatik.id', name: 'Nadia', xp: 90 },
+  {
+    id: 'grace@otakatik.id',
+    email: 'grace@otakatik.id',
+    name: 'Grace',
+    xp: 340,
+    mascot: { color: '#A78BFA', hat: 'crown', faceAccessory: 'glasses', outfit: 'hoodie', outfitColor: '#FDE047' },
+  },
+  {
+    id: 'ayu@otakatik.id',
+    email: 'ayu@otakatik.id',
+    name: 'Ayu',
+    xp: 280,
+    mascot: { color: '#F472B6', hat: 'beret', hair: 'ponytail', outfit: 'sweater', outfitColor: '#A7F3D0' },
+  },
+  {
+    id: 'dhea@otakatik.id',
+    email: 'dhea@otakatik.id',
+    name: 'Dhea',
+    xp: 210,
+    mascot: { color: '#34D399', hat: 'wizard', faceAccessory: 'blush', outfit: 'vest', outfitColor: '#FBCFE8' },
+  },
+  {
+    id: 'faris@otakatik.id',
+    email: 'faris@otakatik.id',
+    name: 'Faris',
+    xp: 150,
+    mascot: { color: '#60A5FA', hat: 'cap', faceAccessory: 'sunglasses', outfit: 'jacket', outfitColor: '#93C5FD' },
+  },
+  {
+    id: 'nadia@otakatik.id',
+    email: 'nadia@otakatik.id',
+    name: 'Nadia',
+    xp: 90,
+    mascot: { color: '#FBBF24', hair: 'buns', faceAccessory: 'starCheek', outfit: 'overall', outfitColor: '#DDD6FE' },
+  },
 ];
 
 const MEDAL = ['#FFD166', '#D9E2EC', '#F4A261'];
@@ -33,7 +64,7 @@ export default function Leaderboard() {
     return () => {
       active = false;
     };
-  }, [state.xp, state.user?.name]);
+  }, [state.xp, state.user?.name, state.mascot]);
 
   const meName = state.user ? state.user.name : 'Kamu';
   const meEmail = state.user?.email ? state.user.email.toLowerCase() : 'me_local';
@@ -42,6 +73,7 @@ export default function Leaderboard() {
     email: meEmail,
     name: meName,
     xp: state.xp,
+    mascot: state.mascot,
     isMe: true,
   };
 
@@ -58,6 +90,7 @@ export default function Leaderboard() {
       email: rEmail,
       name: r.name,
       xp: Number(r.xp || 0),
+      mascot: r.mascot || null,
       isMe: false,
     });
   }
@@ -143,7 +176,8 @@ export default function Leaderboard() {
                   borderColor: item.isMe ? colors.blue : 'transparent',
                   borderWidth: item.isMe ? 2.5 : 0,
                   borderRadius: 24,
-                  padding: 16,
+                  paddingHorizontal: 14,
+                  paddingVertical: 12,
                   marginBottom: 12,
                   flexDirection: 'row',
                   alignItems: 'center',
@@ -153,24 +187,28 @@ export default function Leaderboard() {
             >
               <View
                 style={{
-                  width: 42,
-                  height: 42,
-                  borderRadius: 21,
+                  width: 38,
+                  height: 38,
+                  borderRadius: 19,
                   backgroundColor: MEDAL[item.rank - 1] || colors.bg,
                   alignItems: 'center',
                   justifyContent: 'center',
-                  marginRight: 14,
+                  marginRight: 10,
                 }}
               >
                 {item.rank <= 3 ? (
-                  <Ionicons name="trophy" size={20} color={colors.navy} />
+                  <Ionicons name="trophy" size={18} color={colors.navy} />
                 ) : (
-                  <T weight="bold" style={{ fontSize: 17 }}>{item.rank}</T>
+                  <T weight="bold" style={{ fontSize: 16 }}>{item.rank}</T>
                 )}
               </View>
 
+              <View style={{ marginRight: 12, alignItems: 'center', justifyContent: 'center' }}>
+                <Mascot size={46} bob={false} config={item.mascot || {}} />
+              </View>
+
               <View style={{ flex: 1 }}>
-                <T weight="bold" style={{ fontSize: 19 }}>
+                <T weight="bold" style={{ fontSize: 18 }}>
                   {item.name} {item.isMe ? '(Kamu)' : ''}
                 </T>
                 <T weight="semi" style={{ fontSize: 14, color: colors.slate }}>
@@ -178,7 +216,7 @@ export default function Leaderboard() {
                 </T>
               </View>
 
-              <T weight="bold" style={{ fontSize: 18, color: colors.blueDark }}>
+              <T weight="bold" style={{ fontSize: 17, color: colors.blueDark }}>
                 {item.xp} XP
               </T>
             </View>
