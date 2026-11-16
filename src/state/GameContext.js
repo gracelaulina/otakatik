@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useEffect, useMemo, useReducer } from 'react';
-import { STAGES } from '../data/content';
-import { getSavedSession, loadUserProgress, saveUserProgress } from '../services/firebase';
+import { STAGES, applyQuestionBank } from '../data/content';
+import { getSavedSession, loadUserProgress, saveUserProgress, loadQuestionBank } from '../services/firebase';
 
 export const levelFromXp = (xp) => Math.floor(xp / 100) + 1;
 export const xpForNext = (xp) => levelFromXp(xp) * 100;
@@ -157,12 +157,18 @@ const GameContext = createContext(null);
 export function GameProvider({ children }) {
   const [state, dispatch] = useReducer(gameReducer, initialState);
 
-  // Pulihkan sesi user dan progres
+  // Pulihkan sesi user, progres, dan bank soal terbaru dari Guru
   useEffect(() => {
     let mounted = true;
 
     (async () => {
-      const savedUser = await getSavedSession();
+      const [savedUser, customBank] = await Promise.all([
+        getSavedSession(),
+        loadQuestionBank(),
+      ]);
+      if (customBank) {
+        applyQuestionBank(customBank);
+      }
 
       if (savedUser) {
         const savedProgress = await loadUserProgress(savedUser);

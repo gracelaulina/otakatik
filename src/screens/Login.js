@@ -70,14 +70,11 @@ export default function Login() {
     nav.reset('Home');
   };
 
+  const passTooShort = pass.length > 0 && pass.length < 8;
+  const canSubmit = email.trim().includes('@') && pass.length >= 8 && !busy;
+
   const submit = async () => {
-    if (busy) return;
-    if (!email.includes('@') || pass.length < 6) {
-      setError('Cek lagi email dan kata sandimu (min. 6 karakter).');
-      setInfo('');
-      doShake();
-      return;
-    }
+    if (!canSubmit) return;
     setBusy(true);
     setError('');
     setInfo('');
@@ -343,11 +340,16 @@ export default function Login() {
                 </FadeInUp>
                 <FadeInUp delay={160}>
                   <Field
-                    placeholder="Kata sandi"
+                    placeholder="Kata sandi (min. 8 karakter)"
                     value={pass}
                     onChangeText={setPass}
                     secureTextEntry
                   />
+                  {passTooShort ? (
+                    <T weight="semi" style={{ color: colors.redDark, fontSize: 13, marginTop: 6, marginLeft: 8 }}>
+                      ⚠️ Kata sandi minimal harus 8 karakter ({pass.length}/8)
+                    </T>
+                  ) : null}
                 </FadeInUp>
               </Animated.View>
 
@@ -360,11 +362,11 @@ export default function Login() {
                 </T>
               </Pressable>
 
-              <FadeInUp delay={210} style={{ marginTop: 2 }}>
+              <FadeInUp delay={210} style={{ marginTop: 2, opacity: canSubmit ? 1 : 0.55 }}>
                 <Button3D
                   title={busy ? 'Memproses...' : 'Masuk'}
                   variant="blue"
-                  disabled={busy}
+                  disabled={!canSubmit}
                   onPress={submit}
                 />
               </FadeInUp>

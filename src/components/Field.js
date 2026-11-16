@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { Pressable, TextInput, View } from 'react-native';
+import { Platform, Pressable, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, shadow } from '../theme';
+
+const webNoOutline = Platform.OS === 'web' ? { outlineStyle: 'none' } : {};
 
 export default function Field({ style, secureTextEntry, ...props }) {
   const [hidden, setHidden] = useState(!!secureTextEntry);
@@ -15,12 +17,15 @@ export default function Field({ style, secureTextEntry, ...props }) {
           {
             backgroundColor: '#fff',
             borderRadius: 22,
-            height: 60,
-            paddingHorizontal: 24,
-            fontSize: 18,
+            height: 58,
+            paddingHorizontal: 20,
+            fontSize: 17,
             fontFamily: fonts.semi,
             color: colors.navy,
+            width: '100%',
+            minWidth: 0,
           },
+          webNoOutline,
           shadow,
           style,
         ]}
@@ -34,11 +39,14 @@ export default function Field({ style, secureTextEntry, ...props }) {
         {
           backgroundColor: '#fff',
           borderRadius: 22,
-          height: 60,
-          paddingLeft: 24,
-          paddingRight: 14,
+          height: 58,
+          paddingLeft: 20,
+          paddingRight: 12,
           flexDirection: 'row',
           alignItems: 'center',
+          width: '100%',
+          minWidth: 0,
+          overflow: 'hidden',
         },
         shadow,
         style,
@@ -48,13 +56,19 @@ export default function Field({ style, secureTextEntry, ...props }) {
         placeholderTextColor={colors.slate}
         {...props}
         secureTextEntry={hidden}
-        style={{
-          flex: 1,
-          height: '100%',
-          fontSize: 18,
-          fontFamily: fonts.semi,
-          color: colors.navy,
-        }}
+        style={[
+          {
+            flex: 1,
+            minWidth: 0,
+            height: '100%',
+            fontSize: 17,
+            fontFamily: fonts.semi,
+            color: colors.navy,
+            backgroundColor: 'transparent',
+            borderWidth: 0,
+          },
+          webNoOutline,
+        ]}
       />
       <Pressable
         onPress={() => setHidden(!hidden)}

@@ -115,9 +115,34 @@ export default function Profile() {
   const [soundOn, setSoundOn] = useState(isSoundEnabled());
   const [editModal, setEditModal] = useState(false);
   const [mascotModal, setMascotModal] = useState(false);
+  const [teacherPinModal, setTeacherPinModal] = useState(false);
+  const [teacherPin, setTeacherPin] = useState('');
+  const [teacherPinError, setTeacherPinError] = useState('');
+  const [secretTapCount, setSecretTapCount] = useState(0);
   const [newName, setNewName] = useState(user.name);
   const [editError, setEditError] = useState('');
   const [busy, setBusy] = useState(false);
+
+  const TEACHER_EMAILS = [
+    'sanzx2101@gmail.com',
+    'farisfaizal21@upi.edu',
+    'ayumutia@upi.edu',
+    'guru@otakatik.id',
+  ];
+  const isTeacherEmail = TEACHER_EMAILS.includes(String(user.email || '').trim().toLowerCase());
+
+  const handleMascotSecretTap = () => {
+    const next = secretTapCount + 1;
+    if (next >= 5) {
+      setSecretTapCount(0);
+      feedback.tap();
+      setTeacherPin('');
+      setTeacherPinError('');
+      setTeacherPinModal(true);
+    } else {
+      setSecretTapCount(next);
+    }
+  };
 
   const [activeTab, setActiveTab] = useState('color');
   const [draft, setDraft] = useState({
@@ -355,17 +380,19 @@ export default function Profile() {
     contentContainerStyle={{ paddingBottom: 30 }}
   >
     <View style={{ alignItems: 'center', paddingTop: 12 }}>
-        <Mascot
-  size={120}
-  mascotColor={draft.color}
-  hair={draft.hair}
-  hairColor={draft.hairColor}
-  hat={draft.hat}
-  outfit={draft.outfit}
-  outfitColor={draft.outfitColor}
-  faceAccessory={draft.faceAccessory}
-  extraAccessory={draft.extraAccessory}
-/>
+        <Pressable onPress={handleMascotSecretTap}>
+          <Mascot
+            size={120}
+            mascotColor={draft.color}
+            hair={draft.hair}
+            hairColor={draft.hairColor}
+            hat={draft.hat}
+            outfit={draft.outfit}
+            outfitColor={draft.outfitColor}
+            faceAccessory={draft.faceAccessory}
+            extraAccessory={draft.extraAccessory}
+          />
+        </Pressable>
 
         <FadeInUp delay={100} style={{ alignItems: 'center' }}>
           <Pressable
@@ -511,6 +538,40 @@ export default function Profile() {
             </T>
           </Pressable>
         </FadeInUp>
+
+        {isTeacherEmail && (
+          <FadeInUp delay={320} style={{ alignSelf: 'stretch', marginTop: 14 }}>
+            <Pressable
+              onPress={() => {
+                feedback.tap();
+                setTeacherPin('');
+                setTeacherPinError('');
+                setTeacherPinModal(true);
+              }}
+              style={[
+                {
+                  backgroundColor: colors.yellow,
+                  borderRadius: 24,
+                  paddingHorizontal: 20,
+                  paddingVertical: 14,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                },
+                shadow,
+              ]}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                <Ionicons name="Briefcase-outline" style={{ display: 'none' }} />
+                <Ionicons name="create" size={22} color={colors.navy} />
+                <T weight="bold" style={{ fontSize: 16, marginLeft: 12 }}>
+                  Kelola Materi & Soal
+                </T>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.navy} />
+            </Pressable>
+          </FadeInUp>
+        )}
       </View>
 
       <View style={{ gap: 10, marginTop: 16 }}>
@@ -719,6 +780,83 @@ export default function Profile() {
 
             <Pressable
               onPress={() => setEditModal(false)}
+              style={{ alignItems: 'center', paddingTop: 14, paddingBottom: 4 }}
+            >
+              <T weight="bold" style={{ fontSize: 15, color: colors.slate }}>
+                Batal
+              </T>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal Kode Rahasia Panel Pengajar */}
+      <Modal
+        visible={teacherPinModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setTeacherPinModal(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(10, 9, 66, 0.65)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: 20,
+          }}
+        >
+          <View
+            style={[
+              {
+                backgroundColor: '#fff',
+                borderRadius: 30,
+                padding: 22,
+                width: '100%',
+                maxWidth: 400,
+              },
+              shadow,
+            ]}
+          >
+            <T weight="bold" style={{ fontSize: 22, marginBottom: 6 }}>
+              Verifikasi Kode Pengajar
+            </T>
+            <T weight="semi" style={{ fontSize: 14, color: colors.slate, marginBottom: 14, lineHeight: 20 }}>
+              Masukkan kode keamanan pengajar untuk mengelola materi pembelajaran dan bank soal:
+            </T>
+
+            <Field
+              placeholder="Masukkan kode keamanan"
+              value={teacherPin}
+              onChangeText={setTeacherPin}
+              autoCapitalize="characters"
+              secureTextEntry
+              style={{ backgroundColor: colors.bg, marginBottom: 12 }}
+            />
+
+            {teacherPinError ? (
+              <T weight="semi" style={{ color: colors.redDark, textAlign: 'center', marginBottom: 10, fontSize: 14 }}>
+                {teacherPinError}
+              </T>
+            ) : null}
+
+            <Button3D
+              title="Buka Panel Kelola"
+              variant="blue"
+              onPress={() => {
+                if (teacherPin.trim().toUpperCase() === 'GURU123') {
+                  feedback.correct();
+                  setTeacherPinModal(false);
+                  nav.push('TeacherDashboard');
+                } else {
+                  feedback.wrong();
+                  setTeacherPinError('Kode keamanan pengajar tidak valid.');
+                }
+              }}
+            />
+
+            <Pressable
+              onPress={() => setTeacherPinModal(false)}
               style={{ alignItems: 'center', paddingTop: 14, paddingBottom: 4 }}
             >
               <T weight="bold" style={{ fontSize: 15, color: colors.slate }}>

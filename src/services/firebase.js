@@ -618,6 +618,7 @@ export async function fetchLeaderboard() {
           name: d.name,
           email: d.email || docSnap.id,
           xp: Number(d.xp || 0),
+          completed: d.completed || {},
           mascot: d.mascot || null,
         });
       }
@@ -626,4 +627,51 @@ export async function fetchLeaderboard() {
   } catch {
     return null;
   }
+}
+
+const STORAGE_QBANK_KEY = '@otakatik_question_bank_v1';
+
+/**
+ * Muat bank soal kustom dari Cloud Firestore (koleksi `settings/question_bank`) & AsyncStorage
+ */
+export async function loadQuestionBank() {
+  let localBank = null;
+  try {
+    const raw = await AsyncStorage.getItem(STORAGE_QBANK_KEY);
+    if (raw) localBank = JSON.parse(raw);
+  } catch {}
+
+  if (isFirebaseConfigured() && db) {
+    try {
+      const snap = await getDoc(doc(db, 'settings', 'question_bank'));
+      if (snap.exists() && snap.data()?.stages) {
+        const cloudBank = snap.data().stages;
+        await AsyncStorage.setItem(STORAGE_QBANK_KEY, JSON.stringify(cloudBank));
+        return cloudBank;
+      }
+    } catch {}
+  }
+  return localBank;
+}
+
+/**
+ * Simpan perubahan bank soal dari Dashboard Guru ke Cloud Firestore & AsyncStorage
+ */
+export async function saveQuestionBank(stagesBank) {
+  try {
+    await AsyncStorage.setItem(STORAGE_QBANK_KEY, JSON.stringify(stagesBank));
+  } catch {}
+
+  if (isFirebaseConfigured() && db) {
+    await setDoc(
+      doc(db, 'settings', 'question_bank'),
+      {
+        stages: stagesBank,
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
+    return true;
+  }
+  return false;
 }

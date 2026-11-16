@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Animated, BackHandler, Pressable, ScrollView, View } from 'react-native';
+import { Animated, BackHandler, Modal, Pressable, ScrollView, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Screen from '../components/Screen';
 import T from '../components/T';
@@ -80,13 +80,13 @@ export default function Quiz({ params }) {
     };
   };
   const [s, setS] = useState(makeInitial);
+  const [exitModal, setExitModal] = useState(false);
   const patch = (p) => setS((prev) => ({ ...prev, ...p }));
 
-  const confirmExit = () =>
-    Alert.alert('Keluar dari kuis?', 'Progres kuis ini tidak akan disimpan.', [
-      { text: 'Lanjut belajar', style: 'cancel' },
-      { text: 'Keluar', style: 'destructive', onPress: () => nav.back() },
-    ]);
+  const confirmExit = () => {
+    feedback.tap();
+    setExitModal(true);
+  };
 
   useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
@@ -428,6 +428,76 @@ export default function Quiz({ params }) {
       {s.overlay === 'gameover' ? (
         <GameOverView onRetry={retry} onHome={() => nav.reset('Home')} />
       ) : null}
+
+      {/* Modal Konfirmasi Keluar Kuis (Berfungsi di Web & Mobile) */}
+      <Modal
+        visible={exitModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setExitModal(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(10, 9, 66, 0.65)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: 20,
+          }}
+        >
+          <View
+            style={[
+              {
+                backgroundColor: '#fff',
+                borderRadius: 28,
+                padding: 22,
+                width: '100%',
+                maxWidth: 380,
+                alignItems: 'center',
+              },
+              shadow,
+            ]}
+          >
+            <Mascot size={84} mood="sad" bob={false} />
+            <T weight="bold" style={{ fontSize: 22, marginTop: 10, textAlign: 'center' }}>
+              Keluar dari Kuis?
+            </T>
+            <T
+              weight="semi"
+              style={{
+                fontSize: 15,
+                color: colors.slate,
+                textAlign: 'center',
+                marginTop: 6,
+                marginBottom: 18,
+                lineHeight: 21,
+              }}
+            >
+              Progres kuis di sesi ini belum disimpan. Yakin ingin kembali?
+            </T>
+
+            <View style={{ width: '100%', gap: 10 }}>
+              <Button3D
+                title="Lanjut Belajar"
+                variant="blue"
+                onPress={() => {
+                  feedback.tap();
+                  setExitModal(false);
+                }}
+              />
+              <Button3D
+                title="Ya, Keluar Kuis"
+                variant="white"
+                onPress={() => {
+                  feedback.tap();
+                  setExitModal(false);
+                  nav.back();
+                }}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }

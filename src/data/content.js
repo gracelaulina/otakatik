@@ -824,3 +824,52 @@ export const flattenStage = (stage, levelKey) => {
     (stage.questions[lv.key] || []).map((q) => ({ ...q, level: i, stageId: stage.id }))
   );
 };
+
+// Salinan awal bank materi & soal bawaan (untuk fitur Reset di Panel Pengajar)
+export const DEFAULT_QUESTION_BANK = JSON.parse(
+  JSON.stringify(
+    Object.fromEntries(
+      STAGES.map((s) => [
+        String(s.id),
+        {
+          ...s.questions,
+          materi: s.materi,
+        },
+      ])
+    )
+  )
+);
+
+// Ambil struktur bank materi & soal aktif saat ini
+export const getQuestionBank = () =>
+  JSON.parse(
+    JSON.stringify(
+      Object.fromEntries(
+        STAGES.map((s) => [
+          String(s.id),
+          {
+            ...s.questions,
+            materi: s.materi,
+          },
+        ])
+      )
+    )
+  );
+
+// Terapkan bank materi & soal dari Cloud Firestore langsung ke memori STAGES
+export const applyQuestionBank = (bank) => {
+  if (!bank || typeof bank !== 'object') return;
+  for (const stage of STAGES) {
+    const stageData = bank[String(stage.id)];
+    if (stageData && typeof stageData === 'object') {
+      for (const lv of LEVELS) {
+        if (Array.isArray(stageData[lv.key])) {
+          stage.questions[lv.key] = stageData[lv.key];
+        }
+      }
+      if (Array.isArray(stageData.materi) && stageData.materi.length > 0) {
+        stage.materi = stageData.materi;
+      }
+    }
+  }
+};

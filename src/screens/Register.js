@@ -48,18 +48,17 @@ export default function Register() {
     nav.reset('Home');
   };
 
+  const passTooShort = pass.length > 0 && pass.length < 8;
+  const passMismatch = confirmPass.length > 0 && pass !== confirmPass;
+  const canSubmit =
+    name.trim().length > 0 &&
+    email.trim().includes('@') &&
+    pass.length >= 8 &&
+    pass === confirmPass &&
+    !busy;
+
   const submit = async () => {
-    if (busy) return;
-    if (!name.trim() || !email.includes('@') || pass.length < 6) {
-      setError('Isi nama unik, email aktif, dan kata sandi minimal 6 karakter.');
-      doShake();
-      return;
-    }
-    if (pass !== confirmPass) {
-      setError('Konfirmasi kata sandi tidak cocok.');
-      doShake();
-      return;
-    }
+    if (!canSubmit) return;
     setBusy(true);
     setError('');
     setInfo('');
@@ -205,8 +204,22 @@ export default function Register() {
               <Animated.View style={{ transform: [{ translateX: shake }], gap: 12 }}>
                 <FadeInUp delay={80}><Field placeholder="Nama panggilan unik" value={name} onChangeText={setName} /></FadeInUp>
                 <FadeInUp delay={130}><Field placeholder="Alamat Gmail (contoh: nama@gmail.com)" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" /></FadeInUp>
-                <FadeInUp delay={180}><Field placeholder="Kata sandi (min. 6 karakter)" value={pass} onChangeText={setPass} secureTextEntry /></FadeInUp>
-                <FadeInUp delay={220}><Field placeholder="Ulangi kata sandi" value={confirmPass} onChangeText={setConfirmPass} secureTextEntry /></FadeInUp>
+                <FadeInUp delay={180}>
+                  <Field placeholder="Kata sandi (min. 8 karakter)" value={pass} onChangeText={setPass} secureTextEntry />
+                  {passTooShort ? (
+                    <T weight="semi" style={{ color: colors.redDark, fontSize: 13, marginTop: 6, marginLeft: 8 }}>
+                      ⚠️ Kata sandi minimal harus 8 karakter ({pass.length}/8)
+                    </T>
+                  ) : null}
+                </FadeInUp>
+                <FadeInUp delay={220}>
+                  <Field placeholder="Ulangi kata sandi" value={confirmPass} onChangeText={setConfirmPass} secureTextEntry />
+                  {passMismatch ? (
+                    <T weight="semi" style={{ color: colors.redDark, fontSize: 13, marginTop: 6, marginLeft: 8 }}>
+                      ⚠️ Konfirmasi kata sandi belum sama
+                    </T>
+                  ) : null}
+                </FadeInUp>
               </Animated.View>
               {error ? <T weight="semi" style={{ color: colors.redDark, marginTop: 10, fontSize: 14 }}>{error}</T> : null}
               <View style={{ flex: 1 }} />
@@ -218,7 +231,9 @@ export default function Register() {
                   </T>
                 </View>
               </FadeInUp>
-              <Button3D title={busy ? 'Mendaftarkan...' : 'Daftar & Kirim Verifikasi'} disabled={busy} onPress={submit} />
+              <View style={{ opacity: canSubmit ? 1 : 0.55 }}>
+                <Button3D title={busy ? 'Mendaftarkan...' : 'Daftar & Kirim Verifikasi'} disabled={!canSubmit} onPress={submit} />
+              </View>
             </>
           )}
         </ScrollView>

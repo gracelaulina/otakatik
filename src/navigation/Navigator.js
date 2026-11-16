@@ -18,8 +18,9 @@ import Leaderboard from '../screens/Leaderboard';
 import Badges from '../screens/Badges';
 import Profile from '../screens/Profile';
 import History from '../screens/History';
+import TeacherDashboard from '../screens/TeacherDashboard';
 
-const SCREENS = { Login, Register, Home, StageSelect, Materi, Quiz, StageComplete, Progress, Leaderboard, Badges, Profile, History };
+const SCREENS = { Login, Register, Home, StageSelect, Materi, Quiz, StageComplete, Progress, Leaderboard, Badges, Profile, History, TeacherDashboard };
 // layar mana saja yang menampilkan tab bar, dan tab mana yang aktif
 const TAB_FOR = { Home: 'Home', StageSelect: 'Home', Progress: 'Progress', Leaderboard: 'Leaderboard', Badges: 'Badges', Profile: 'Profile' };
 

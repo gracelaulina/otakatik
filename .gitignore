@@ -4,6 +4,9 @@ node_modules/
 .expo-check/
 dist/
 web-build/
+android/
+ios/
+*.apk
 npm-debug.*
 *.jks
 *.p8
