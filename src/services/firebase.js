@@ -475,6 +475,12 @@ export async function loginWithGoogle(customEmail, customName) {
 }
 
 export async function logoutUser() {
+  if (hasNativeGoogleSignIn()) {
+    try {
+      const { GoogleSignin } = require('@react-native-google-signin/google-signin');
+      await GoogleSignin.signOut();
+    } catch {}
+  }
   if (isFirebaseConfigured() && auth) {
     try {
       await fbSignOut(auth);
@@ -542,6 +548,13 @@ export async function deleteCurrentAccount(user) {
   if (isFirebaseConfigured() && db && cleanEmail) {
     try {
       await deleteDoc(doc(db, 'users', cleanEmail));
+    } catch {}
+  }
+
+  if (hasNativeGoogleSignIn()) {
+    try {
+      const { GoogleSignin } = require('@react-native-google-signin/google-signin');
+      await GoogleSignin.signOut();
     } catch {}
   }
 

@@ -374,11 +374,11 @@ export default function Profile() {
 
   return (
     <Screen padBottom={0}>
-  <ScrollView
-    style={{ flex: 1 }}
-    showsVerticalScrollIndicator={false}
-    contentContainerStyle={{ paddingBottom: 30 }}
-  >
+      <ScrollView
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 130 }}
+      >
     <View style={{ alignItems: 'center', paddingTop: 12 }}>
         <Pressable onPress={handleMascotSecretTap}>
           <Mascot
