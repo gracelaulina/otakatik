@@ -296,17 +296,19 @@ export async function loginUser({ email, password }) {
     try {
       const cred = await signInWithEmailAndPassword(auth, cleanEmail, password);
       let resolvedName = cred.user.displayName || '';
-      if (!resolvedName && db) {
+      let cloudVerified = false;
+      if (db) {
         const snap = await getDoc(doc(db, 'users', cleanEmail)).catch(() => null);
-        if (snap && snap.exists() && snap.data()?.name) {
-          resolvedName = snap.data().name;
+        if (snap && snap.exists()) {
+          if (!resolvedName && snap.data()?.name) resolvedName = snap.data().name;
+          if (snap.data()?.emailVerified) cloudVerified = true;
         }
       }
       const userObj = {
         uid: cred.user.uid,
         name: resolvedName || nameFromEmail(cleanEmail),
         email: cleanEmail,
-        emailVerified: !!cred.user.emailVerified,
+        emailVerified: !!(cred.user.emailVerified || cloudVerified),
         provider: 'firebase',
       };
       await saveLocalAccount(cleanEmail, { ...userObj, password });
