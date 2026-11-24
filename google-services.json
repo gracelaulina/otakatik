@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "769308927143",
+    "project_id": "otakatik-100c6",
+    "storage_bucket": "otakatik-100c6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:769308927143:android:8226c8adee74c16d77a782",
+        "android_client_info": {
+          "package_name": "com.otakatik.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "769308927143-12a94sq9eht70bhtnogdmnc09olvp7th.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.otakatik.app",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "769308927143-6vaqfv8n2vgunpjnic2gfs693k1bsoun.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC5DIS81c6fmU-lKhdQlrsfwVBLymyejms"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "769308927143-6vaqfv8n2vgunpjnic2gfs693k1bsoun.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -22,6 +22,7 @@ import { colors, shadow } from '../theme';
 import {
   loginUser,
   loginWithGoogle,
+  hasNativeGoogleSignIn,
   resetPassword,
   checkEmailVerified,
   resendVerificationEmail,
@@ -158,14 +159,16 @@ export default function Login() {
 
   const handleGooglePress = async () => {
     if (busy) return;
-    if (Platform.OS === 'web') {
+    if (Platform.OS === 'web' || hasNativeGoogleSignIn()) {
       setBusy(true);
       setError('');
       try {
         const { user } = await loginWithGoogle();
         await finishLogin(user);
-      } catch {
-        setError('Gagal masuk dengan popup Google.');
+      } catch (err) {
+        if (err?.message !== 'CANCELLED') {
+          setError(err?.message || 'Gagal masuk dengan popup Google.');
+        }
       } finally {
         setBusy(false);
       }

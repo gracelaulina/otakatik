@@ -1,4 +1,4 @@
-import { Platform } from 'react-native';
+import { NativeModules, Platform, TurboModuleRegistry } from 'react-native';
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import {
   getAuth,
@@ -9,6 +9,7 @@ import {
   sendPasswordResetEmail,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithCredential,
   reload,
   deleteUser,
   signOut as fbSignOut,
@@ -338,15 +339,44 @@ export async function loginUser({ email, password }) {
   return { user: userObj, mode: 'local' };
 }
 
+const GOOGLE_WEB_CLIENT_ID =
+  '769308927143-6vaqfv8n2vgunpjnic2gfs693k1bsoun.apps.googleusercontent.com';
+
+export const hasNativeGoogleSignIn = () => {
+  if (Platform.OS === 'web') return false;
+  try {
+    return !!(
+      (TurboModuleRegistry && TurboModuleRegistry.get('RNGoogleSignin')) ||
+      NativeModules?.RNGoogleSignin
+    );
+  } catch {
+    return false;
+  }
+};
+
 /**
- * Masuk dengan Akun Google (validasi nama unik bila akun baru)
+ * Masuk dengan Akun Google (Popup Native Android di APK, Popup OAuth di Web, Fallback Modal di Expo Go)
  */
 export async function loginWithGoogle(customEmail, customName) {
+  // 1. Di Web Browser: Popup Google resmi
   if (Platform.OS === 'web' && isFirebaseConfigured() && auth) {
     const provider = new GoogleAuthProvider();
     const cred = await signInWithPopup(auth, provider);
     const cleanEmail = normalizeEmail(cred.user.email || 'siswa@gmail.com');
-    const cleanName = cred.user.displayName || nameFromEmail(cleanEmail);
+    let cleanName = cred.user.displayName || nameFromEmail(cleanEmail);
+    if (db) {
+      const existingDoc = await getDoc(doc(db, 'users', cleanEmail)).catch(() => null);
+      if (existingDoc && existingDoc.exists() && existingDoc.data()?.name) {
+        cleanName = existingDoc.data().name;
+      } else if (await isNameTaken(cleanName, cleanEmail)) {
+        cleanName = `${cleanName}_${Math.floor(10 + Math.random() * 89)}`;
+      }
+      await setDoc(
+        doc(db, 'users', cleanEmail),
+        { uid: cred.user.uid, name: cleanName, email: cleanEmail, syncedAt: serverTimestamp() },
+        { merge: true }
+      ).catch(() => {});
+    }
     const userObj = {
       uid: cred.user.uid,
       name: cleanName,
@@ -354,21 +384,61 @@ export async function loginWithGoogle(customEmail, customName) {
       emailVerified: true,
       provider: 'firebase-google',
     };
-    if (db) {
-      await setDoc(
-        doc(db, 'users', cleanEmail),
-        { uid: userObj.uid, name: cleanName, email: cleanEmail, syncedAt: serverTimestamp() },
-        { merge: true }
-      ).catch(() => {});
-    }
     await AsyncStorage.setItem(STORAGE_USER_KEY, JSON.stringify(userObj));
     return { user: userObj };
   }
 
+  // 2. Di APK Android Mandiri: Popup Pilih Akun Google Bawaan Sistem Android
+  if (hasNativeGoogleSignIn() && isFirebaseConfigured() && auth) {
+    const { GoogleSignin } = require('@react-native-google-signin/google-signin');
+    GoogleSignin.configure({
+      webClientId: GOOGLE_WEB_CLIENT_ID,
+      offlineAccess: false,
+    });
+    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+    await GoogleSignin.signOut().catch(() => {});
+    const res = await GoogleSignin.signIn();
+    if (res?.type === 'cancelled') {
+      throw new Error('CANCELLED');
+    }
+    const idToken = res?.data?.idToken || res?.idToken;
+    if (!idToken) {
+      throw new Error('Gagal mendapatkan token Google. Pastikan Play Services aktif.');
+    }
+    const credential = GoogleAuthProvider.credential(idToken);
+    const cred = await signInWithCredential(auth, credential);
+    const cleanEmail = normalizeEmail(cred.user.email || res?.data?.user?.email || '');
+    let cleanName = cred.user.displayName || res?.data?.user?.name || nameFromEmail(cleanEmail);
+
+    if (db && cleanEmail) {
+      const existingDoc = await getDoc(doc(db, 'users', cleanEmail)).catch(() => null);
+      if (existingDoc && existingDoc.exists() && existingDoc.data()?.name) {
+        cleanName = existingDoc.data().name;
+      } else if (await isNameTaken(cleanName, cleanEmail)) {
+        cleanName = `${cleanName}_${Math.floor(10 + Math.random() * 89)}`;
+      }
+      await setDoc(
+        doc(db, 'users', cleanEmail),
+        { uid: cred.user.uid, name: cleanName, email: cleanEmail, syncedAt: serverTimestamp() },
+        { merge: true }
+      ).catch(() => {});
+    }
+
+    const userObj = {
+      uid: cred.user.uid,
+      name: cleanName,
+      email: cleanEmail,
+      emailVerified: true,
+      provider: 'firebase-google',
+    };
+    await AsyncStorage.setItem(STORAGE_USER_KEY, JSON.stringify(userObj));
+    return { user: userObj };
+  }
+
+  // 3. Fallback khusus saat dijalankan di dalam Expo Go
   const cleanEmail = normalizeEmail(customEmail || 'budi.siswa@gmail.com');
   let cleanName = (customName || '').trim();
 
-  // Jika email ini sudah pernah terdaftar di Firestore, gunakan nama aslinya
   if (db) {
     const existingDoc = await getDoc(doc(db, 'users', cleanEmail)).catch(() => null);
     if (existingDoc && existingDoc.exists() && existingDoc.data()?.name) {
@@ -377,7 +447,6 @@ export async function loginWithGoogle(customEmail, customName) {
   }
   if (!cleanName) cleanName = nameFromEmail(cleanEmail);
 
-  // Pastikan nama belum dipakai oleh email lain
   if (await isNameTaken(cleanName, cleanEmail)) {
     throw new Error(`Nama "${cleanName}" sudah dipakai email lain. Masukkan nama panggilan berbeda.`);
   }
