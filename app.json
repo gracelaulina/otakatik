@@ -20,7 +20,8 @@
     "plugins": [
       "expo-font",
       "expo-status-bar",
-      "@react-native-google-signin/google-signin"
+      "@react-native-google-signin/google-signin",
+      "expo-audio"
     ]
   }
 }

@@ -1,5 +1,6 @@
 import { Platform, Vibration } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import { createAudioPlayer, setAudioModeAsync } from 'expo-audio';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SOUND_PREF_KEY = '@otakatik_sound_enabled_v1';
@@ -18,10 +19,48 @@ export const setSoundEnabled = (val) => {
 
 export const isSoundEnabled = () => feedbackEnabled;
 
-// Synthesizer nada efek suara ringan (tanpa file MP3 eksternal & aman di Expo SDK 58)
+// Aset efek suara lokal (.wav) untuk Android / iOS via expo-audio
+const SOUND_SOURCES = {
+  tap: require('../../assets/sounds/tap.wav'),
+  correct: require('../../assets/sounds/correct.wav'),
+  wrong: require('../../assets/sounds/wrong.wav'),
+  levelup: require('../../assets/sounds/levelup.wav'),
+  complete: require('../../assets/sounds/complete.wav'),
+  gameover: require('../../assets/sounds/gameover.wav'),
+};
+
+const players = {};
+let audioConfigured = false;
+
+function playNativeSound(key, volume = 0.85) {
+  if (!feedbackEnabled || Platform.OS === 'web') return;
+  try {
+    if (!audioConfigured) {
+      audioConfigured = true;
+      setAudioModeAsync({
+        playsInSilentMode: true,
+        interruptionMode: 'mixWithOthers',
+      }).catch(() => {});
+    }
+    if (!players[key]) {
+      players[key] = createAudioPlayer(SOUND_SOURCES[key]);
+    }
+    const player = players[key];
+    player.volume = volume;
+    Promise.resolve(player.seekTo(0))
+      .then(() => player.play())
+      .catch(() => {
+        try {
+          player.play();
+        } catch {}
+      });
+  } catch {}
+}
+
+// Synthesizer nada untuk Web Browser
 let audioCtx = null;
-function playTones(notes = []) {
-  if (!feedbackEnabled) return;
+function playWebTones(notes = []) {
+  if (!feedbackEnabled || Platform.OS !== 'web') return;
   try {
     const Ctx =
       typeof window !== 'undefined' && (window.AudioContext || window.webkitAudioContext);
@@ -49,68 +88,64 @@ function playTones(notes = []) {
   } catch {}
 }
 
-const safeVibrate = (pattern) => {
+// Getaran langsung ke motor getar Android + Haptics iOS/Android
+function triggerVibrate(pattern, hapticFn) {
+  if (!feedbackEnabled || Platform.OS === 'web') return;
   try {
-    if (Platform.OS !== 'web') {
-      Vibration.vibrate(pattern);
-    }
+    Vibration.vibrate(pattern);
   } catch {}
-};
+  try {
+    if (hapticFn) hapticFn().catch(() => {});
+  } catch {}
+}
 
 export const feedback = {
   tap() {
     if (!feedbackEnabled) return;
-    playTones([[520, 45, 'sine', 0.08]]);
-    if (Platform.OS !== 'web') {
-      Haptics.selectionAsync().catch(() => safeVibrate(15));
-    }
+    playNativeSound('tap', 0.6);
+    playWebTones([[520, 45, 'sine', 0.08]]);
+    triggerVibrate(18, () => Haptics.selectionAsync());
   },
   correct() {
     if (!feedbackEnabled) return;
-    // Nada ceria naik (C5 -> E5 -> G5)
-    playTones([
+    playNativeSound('correct', 0.95);
+    playWebTones([
       [523.25, 90, 'triangle', 0.16],
       [659.25, 90, 'triangle', 0.16],
       [783.99, 170, 'triangle', 0.18],
     ]);
-    if (Platform.OS !== 'web') {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() =>
-        safeVibrate(40)
-      );
-    }
+    triggerVibrate(45, () =>
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+    );
   },
   wrong() {
     if (!feedbackEnabled) return;
-    // Nada rendah turun (buzz salah)
-    playTones([
+    playNativeSound('wrong', 0.9);
+    playWebTones([
       [220, 120, 'sawtooth', 0.12],
       [174.61, 180, 'sawtooth', 0.12],
     ]);
-    if (Platform.OS !== 'web') {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() =>
-        safeVibrate([0, 70, 50, 70])
-      );
-    }
+    triggerVibrate([0, 75, 55, 85], () =>
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+    );
   },
   levelUp() {
     if (!feedbackEnabled) return;
-    // Arpeggio naik level (C5 -> E5 -> G5 -> C6)
-    playTones([
+    playNativeSound('levelup', 1.0);
+    playWebTones([
       [523.25, 85, 'triangle', 0.16],
       [659.25, 85, 'triangle', 0.16],
       [783.99, 85, 'triangle', 0.16],
       [1046.5, 220, 'triangle', 0.2],
     ]);
-    if (Platform.OS !== 'web') {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() =>
-        safeVibrate([0, 50, 60, 90])
-      );
-    }
+    triggerVibrate([0, 50, 60, 95], () =>
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+    );
   },
   complete() {
     if (!feedbackEnabled) return;
-    // Fanfare stage selesai
-    playTones([
+    playNativeSound('complete', 1.0);
+    playWebTones([
       [523.25, 80, 'triangle', 0.16],
       [659.25, 80, 'triangle', 0.16],
       [783.99, 80, 'triangle', 0.16],
@@ -118,25 +153,21 @@ export const feedback = {
       [783.99, 80, 'triangle', 0.16],
       [1046.5, 260, 'triangle', 0.22],
     ]);
-    if (Platform.OS !== 'web') {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() =>
-        safeVibrate([0, 60, 50, 60, 50, 100])
-      );
-    }
+    triggerVibrate([0, 60, 50, 60, 50, 110], () =>
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+    );
   },
   gameOver() {
     if (!feedbackEnabled) return;
-    // Nada sedih turun (G4 -> F4 -> E4 -> C4)
-    playTones([
+    playNativeSound('gameover', 0.95);
+    playWebTones([
       [392.0, 130, 'sine', 0.15],
       [349.23, 130, 'sine', 0.15],
       [329.63, 130, 'sine', 0.15],
       [261.63, 280, 'sine', 0.16],
     ]);
-    if (Platform.OS !== 'web') {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() =>
-        safeVibrate([0, 120, 80, 150])
-      );
-    }
+    triggerVibrate([0, 120, 80, 160], () =>
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)
+    );
   },
 };
