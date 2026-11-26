@@ -127,9 +127,12 @@ export default function Profile() {
     'sanzx2101@gmail.com',
     'farisfaizal21@upi.edu',
     'ayumutia@upi.edu',
+    'dhearizkia888@gmail.com',
     'guru@otakatik.id',
   ];
-  const isTeacherEmail = TEACHER_EMAILS.includes(String(user.email || '').trim().toLowerCase());
+  const isTeacherEmail =
+    user.role === 'teacher' ||
+    TEACHER_EMAILS.includes(String(user.email || '').trim().toLowerCase());
 
   const handleMascotSecretTap = () => {
     const next = secretTapCount + 1;
